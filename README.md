@@ -25,9 +25,9 @@ PostgreSQL 16 is used, with persistent storage in the `postgres_data` volume. In
 
 ## pgAdmin web client
 
-The same `docker compose up -d --build` command starts PostgreSQL and pgAdmin. Open http://localhost:5050 and log in using `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` from `.env`. The default login email is `admin@example.com`; its separately generated password is stored only in `.env`.
+The same `docker compose up -d --build` command starts PostgreSQL and pgAdmin. Open `http://<server-ip>:<PGADMIN_PORT>` using the address and port configured in `.env` (`http://localhost:5050` with the example configuration). Log in using `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` from `.env`. The default login email is `admin@example.com`; its separately generated password is stored only in `.env`.
 
-After login, right-click **Servers**, select **Register > Server**, and use any display name. In the **Connection** tab, enter:
+After login, expand **Servers > Borsa de Treball**. The connection is registered automatically for `PGADMIN_DEFAULT_EMAIL`, with these settings from `.env`:
 
 | Setting | Value |
 | --- | --- |
@@ -36,6 +36,10 @@ After login, right-click **Servers**, select **Register > Server**, and use any 
 | Maintenance database | `POSTGRES_DB` from `.env` (`borsa_de_treball` by default) |
 | Username | `POSTGRES_USER` from `.env` (`Lobby34` by default) |
 | Password | `POSTGRES_PASSWORD` from `.env`, without the surrounding quotes |
+
+`docker/pgadmin/bootstrap.py` creates the connection on both new and existing pgAdmin volumes, without duplicating it on restart or removing other servers. It writes a private password file inside `pgadmin_data`, so opening the connection does not require typing the database password. Credentials come from `.env`; no passwords are stored in the bootstrap script or committed to Git.
+
+Use the same pgAdmin account from each computer. Clearing cookies only requires logging in again; the connection stays in `pgadmin_data`. Registration settings are kept after creation, so edit the server in pgAdmin if you later change its database or username. The password file is refreshed from `.env` whenever the container starts.
 
 The pgAdmin web login and PostgreSQL login are separate accounts. Use `db` as the connection host because pgAdmin runs inside the Compose network. A desktop installation of pgAdmin on the same computer uses `127.0.0.1` and `POSTGRES_PORT` instead.
 
