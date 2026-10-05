@@ -23,19 +23,25 @@ Set the password in `.env` before starting Docker. Keep its single quotes so spe
 
 PostgreSQL 16 is used, with persistent storage in the `postgres_data` volume. Initialization SQL and `POSTGRES_*` credentials apply only on first startup with an empty volume. SQL changes require a migration on an existing database; rebuilding the image does not rerun the schema.
 
-## pgAdmin
+## pgAdmin web client
 
-Register a server using:
+The same `docker compose up -d --build` command starts PostgreSQL and pgAdmin. Open http://localhost:5050 and log in using `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` from `.env`. The default login email is `admin@example.com`; its separately generated password is stored only in `.env`.
+
+After login, right-click **Servers**, select **Register > Server**, and use any display name. In the **Connection** tab, enter:
 
 | Setting | Value |
 | --- | --- |
-| Host | `127.0.0.1` |
+| Host | `db` |
 | Port | `5432` |
-| Maintenance database | `borsa_de_treball` |
-| Username | `Lobby34` |
+| Maintenance database | `POSTGRES_DB` from `.env` (`borsa_de_treball` by default) |
+| Username | `POSTGRES_USER` from `.env` (`Lobby34` by default) |
 | Password | `POSTGRES_PASSWORD` from `.env`, without the surrounding quotes |
 
-The host and port come from `.env`; use your configured values if changed. This connection is for pgAdmin running on the same computer. Future containers connect to `db:5432`.
+The pgAdmin web login and PostgreSQL login are separate accounts. Use `db` as the connection host because pgAdmin runs inside the Compose network. A desktop installation of pgAdmin on the same computer uses `127.0.0.1` and `POSTGRES_PORT` instead.
+
+Database data persists in `postgres_data`; pgAdmin accounts, server registrations and settings persist in `pgadmin_data`. `docker compose down` preserves both volumes. Avoid `docker compose down -v` unless you intend to delete both sets of data. pgAdmin's default login variables initialize its first account only when its configuration database is new; change an existing account's password through the web UI.
+
+The web client binds to localhost by default. To access it from another computer, set `PGADMIN_BIND_ADDRESS=0.0.0.0` in `.env`, recreate the pgAdmin service, and open `http://<server-ip>:5050`. Change `PGADMIN_PORT` if port 5050 is already in use.
 
 Docker initializes the schema automatically. For manual initialization of an empty database in pgAdmin:
 
