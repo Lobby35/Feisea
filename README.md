@@ -29,6 +29,27 @@ The supplied `.env` already contains an application key. Keep this key across co
 
 PostgreSQL 16 is used, with persistent storage in the `postgres_data` volume. Initialization SQL and `POSTGRES_*` credentials apply only on first startup with an empty volume. SQL changes require a migration on an existing database; rebuilding the image does not rerun the schema.
 
+## LAN and Tailscale access
+
+All four services are published on `LAN_BIND_ADDRESS`, `TAILSCALE_BIND_ADDRESS`, and their individual localhost bind addresses from `.env`. This server uses `192.168.0.229` for LAN and `100.88.146.37` for Tailscale.
+
+| Service | LAN | Tailscale |
+| --- | --- | --- |
+| React page | http://192.168.0.229:3000 | http://100.88.146.37:3000 |
+| API | http://192.168.0.229:8001/api | http://100.88.146.37:8001/api |
+| pgAdmin | http://192.168.0.229:5050 | http://100.88.146.37:5050 |
+| PostgreSQL | `192.168.0.229:5433` | `100.88.146.37:5433` |
+
+The same ports are available on `127.0.0.1` from the server itself. Connect through Tailscale when away from the LAN. On another host, update both network addresses in `.env` to IPs assigned to that host before starting Docker. Each service's individual bind address should remain `127.0.0.1` to keep the three bindings distinct.
+
+`APP_URL` is the canonical URL used outside HTTP requests. Browser API requests use the address you opened, and pagination links follow that request's host, so both network addresses work with one frontend build.
+
+After changing network addresses or ports:
+
+```bash
+docker compose up -d
+```
+
 ## pgAdmin web client
 
 The same `docker compose up -d --build` command starts PostgreSQL and pgAdmin. Open `http://<server-ip>:<PGADMIN_PORT>` using the address and port configured in `.env` (`http://localhost:5050` with the example configuration). Log in using `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` from `.env`. The default login email is `admin@example.com`; its separately generated password is stored only in `.env`.
@@ -51,7 +72,7 @@ The pgAdmin web login and PostgreSQL login are separate accounts. Use `db` as th
 
 Database data persists in `postgres_data`; pgAdmin accounts, server registrations and settings persist in `pgadmin_data`. `docker compose down` preserves both volumes. Avoid `docker compose down -v` unless you intend to delete both sets of data. pgAdmin's default login variables initialize its first account only when its configuration database is new; change an existing account's password through the web UI.
 
-The web client binds to localhost by default. To access it from another computer, set `PGADMIN_BIND_ADDRESS=0.0.0.0` in `.env`, recreate the pgAdmin service, and open `http://<server-ip>:5050`. Change `PGADMIN_PORT` if port 5050 is already in use.
+The web client is available on localhost, LAN, and Tailscale using the addresses above. Change `PGADMIN_PORT` in `.env` if port 5050 is already in use.
 
 Docker initializes the schema automatically. For manual initialization of an empty database in pgAdmin:
 

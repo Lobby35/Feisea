@@ -12,6 +12,8 @@ services:
       TZ: ${TZ:?Set TZ in .env}
     ports:
       - "${POSTGRES_BIND_ADDRESS:?Set POSTGRES_BIND_ADDRESS in .env}:${POSTGRES_PORT:?Set POSTGRES_PORT in .env}:5432"
+      - "${LAN_BIND_ADDRESS:?Set LAN_BIND_ADDRESS in .env}:${POSTGRES_PORT:?Set POSTGRES_PORT in .env}:5432"
+      - "${TAILSCALE_BIND_ADDRESS:?Set TAILSCALE_BIND_ADDRESS in .env}:${POSTGRES_PORT:?Set POSTGRES_PORT in .env}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -46,6 +48,8 @@ services:
       TZ: ${TZ:?Set TZ in .env}
     ports:
       - "${API_BIND_ADDRESS:?Set API_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
+      - "${LAN_BIND_ADDRESS:?Set LAN_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
+      - "${TAILSCALE_BIND_ADDRESS:?Set TAILSCALE_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
     healthcheck:
       test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/api/health') === false ? 1 : 0);"]
       interval: 5s
@@ -67,6 +71,8 @@ services:
       API_UPSTREAM: ${FRONTEND_API_UPSTREAM:?Set FRONTEND_API_UPSTREAM in .env}
     ports:
       - "${FRONTEND_BIND_ADDRESS:?Set FRONTEND_BIND_ADDRESS in .env}:${FRONTEND_PORT:?Set FRONTEND_PORT in .env}:80"
+      - "${LAN_BIND_ADDRESS:?Set LAN_BIND_ADDRESS in .env}:${FRONTEND_PORT:?Set FRONTEND_PORT in .env}:80"
+      - "${TAILSCALE_BIND_ADDRESS:?Set TAILSCALE_BIND_ADDRESS in .env}:${FRONTEND_PORT:?Set FRONTEND_PORT in .env}:80"
     depends_on:
       api:
         condition: service_healthy
@@ -85,6 +91,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     ports:
       - "${PGADMIN_BIND_ADDRESS:?Set PGADMIN_BIND_ADDRESS in .env}:${PGADMIN_PORT:?Set PGADMIN_PORT in .env}:80"
+      - "${LAN_BIND_ADDRESS:?Set LAN_BIND_ADDRESS in .env}:${PGADMIN_PORT:?Set PGADMIN_PORT in .env}:80"
+      - "${TAILSCALE_BIND_ADDRESS:?Set TAILSCALE_BIND_ADDRESS in .env}:${PGADMIN_PORT:?Set PGADMIN_PORT in .env}:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
       - ./docker/pgadmin/bootstrap.py:/bootstrap.py:ro
