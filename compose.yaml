@@ -22,6 +22,57 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  api:
+    build:
+      context: ./backend
+      args:
+        PHP_IMAGE: ${PHP_IMAGE:?Set PHP_IMAGE in .env}
+        COMPOSER_IMAGE: ${COMPOSER_IMAGE:?Set COMPOSER_IMAGE in .env}
+    environment:
+      APP_NAME: ${APP_NAME:?Set APP_NAME in .env}
+      APP_ENV: ${APP_ENV:?Set APP_ENV in .env}
+      APP_DEBUG: ${APP_DEBUG:?Set APP_DEBUG in .env}
+      APP_KEY: ${APP_KEY:?Set APP_KEY in .env}
+      APP_URL: ${APP_URL:?Set APP_URL in .env}
+      APP_LOCALE: ${APP_LOCALE:?Set APP_LOCALE in .env}
+      APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:?Set APP_FALLBACK_LOCALE in .env}
+      BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:?Set BCRYPT_ROUNDS in .env}
+      DB_HOST: ${API_DB_HOST:?Set API_DB_HOST in .env}
+      DB_PORT: ${API_DB_PORT:?Set API_DB_PORT in .env}
+      DB_DATABASE: ${POSTGRES_DB:?Set POSTGRES_DB in .env}
+      DB_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DB_SSLMODE: ${API_DB_SSLMODE:?Set API_DB_SSLMODE in .env}
+      TZ: ${TZ:?Set TZ in .env}
+    ports:
+      - "${API_BIND_ADDRESS:?Set API_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/api/health') === false ? 1 : 0);"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:?Set NODE_IMAGE in .env}
+        NGINX_IMAGE: ${NGINX_IMAGE:?Set NGINX_IMAGE in .env}
+    environment:
+      API_UPSTREAM: ${FRONTEND_API_UPSTREAM:?Set FRONTEND_API_UPSTREAM in .env}
+    ports:
+      - "${FRONTEND_BIND_ADDRESS:?Set FRONTEND_BIND_ADDRESS in .env}:${FRONTEND_PORT:?Set FRONTEND_PORT in .env}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+        restart: true
+    restart: unless-stopped
+
   pgadmin:
     image: ${PGADMIN_IMAGE:?Set PGADMIN_IMAGE in .env}
     entrypoint: ["/venv/bin/python3", "/bootstrap.py"]

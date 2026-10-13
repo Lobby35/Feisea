@@ -1,6 +1,6 @@
 # Borsa de Treball
 
-PostgreSQL starter for the student/company job board described in `Projecte_Borsa_de_Treball.pdf`. All 13 pages were reviewed. PostgreSQL follows the requested stack; the PDF recommends MySQL/MariaDB.
+PostgreSQL, Laravel API, and React CRUD test for the student/company job board described in `Projecte_Borsa_de_Treball.pdf`. PostgreSQL follows the requested stack; the PDF recommends MySQL/MariaDB.
 
 ## Start
 
@@ -19,7 +19,13 @@ For another developer or a fresh clone:
 cp example.env .env
 ```
 
-Set the password in `.env` before starting Docker. Keep its single quotes so special characters remain literal.
+Set the database and pgAdmin passwords in `.env` before starting Docker. Keep single quotes around passwords so special characters remain literal. Generate an `APP_KEY` with the following command and copy its output into `.env`:
+
+```bash
+python3 -c "import base64, secrets; print('base64:' + base64.b64encode(secrets.token_bytes(32)).decode())"
+```
+
+The supplied `.env` already contains an application key. Keep this key across container restarts.
 
 PostgreSQL 16 is used, with persistent storage in the `postgres_data` volume. Initialization SQL and `POSTGRES_*` credentials apply only on first startup with an empty volume. SQL changes require a migration on an existing database; rebuilding the image does not rerun the schema.
 
@@ -56,11 +62,66 @@ PostgreSQL cannot switch databases inside an ordinary SQL script, so database cr
 
 `schema.sql` first creates every table with only column names and types. The second section uses `ALTER TABLE` for primary/foreign keys, identity columns, unique constraints, required fields, checks, and defaults. Indexes and triggers follow. No accounts, catalogs, sample data, or seed rows are inserted.
 
+## User CRUD test
+
+Laravel was chosen because the project document recommends it and the later project features need authentication, roles, file storage, notifications, and administration. Laravel provides routing, validation, password hashing, and Eloquent for the existing PostgreSQL schema. FastAPI is a good API framework, but Python would diverge from the document's PHP backend options and require choosing more of these components separately.
+
+`backend` contains a small Laravel 12 API served by Apache. `frontend` contains React built with Vite and served by Nginx. They run as separate services, alongside the existing database and pgAdmin.
+
+Open `http://<FRONTEND_BIND_ADDRESS>:<FRONTEND_PORT>` using the values in `.env`; the example configuration uses http://127.0.0.1:3000. The page has six plain buttons and displays JSON results. Input is collected through browser prompts. **Edit user** reads the current values first; leaving its password prompt empty keeps the existing password. **Delete user** asks for confirmation.
+
+The browser sends requests to `/api` on the frontend's own address. Nginx forwards them to `FRONTEND_API_UPSTREAM` inside Docker. No database credentials or application secrets are included in the frontend. The API is also accessible directly at `http://<API_BIND_ADDRESS>:<API_PORT>/api`; the example uses http://127.0.0.1:8001/api.
+
+| Method | Endpoint | Result |
+| --- | --- | --- |
+| GET | `/api/health` | API and database health |
+| GET | `/api/users?page=1&per_page=20` | Paginated users, up to 100 per page |
+| GET | `/api/users/{id}` | One user |
+| POST | `/api/users` | Create a user; HTTP 201 |
+| PUT | `/api/users/{id}` | Replace editable fields |
+| PATCH | `/api/users/{id}` | Update supplied fields |
+| DELETE | `/api/users/{id}` | Delete a user; HTTP 204 |
+
+Send `Accept: application/json` and `Content-Type: application/json` with JSON bodies. Creation requires `name`, `email`, and `password`; `role`, `status`, and `preferred_locale` use the database defaults if omitted. PUT requires all five editable non-password fields; its password is optional. PATCH requires at least one editable field. Passwords require at least 8 characters and at most 72 bytes.
+
+```json
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "ExamplePass!239",
+  "role": "candidate",
+  "status": "active",
+  "preferred_locale": "ca"
+}
+```
+
+Roles are `candidate`, `company`, or `admin`; statuses are `pending`, `active`, or `blocked`; locales are `ca`, `es`, or `en`. Emails are trimmed and converted to lowercase. Invalid input returns 422, duplicate emails or incompatible related records return 409, and missing users return 404. Passwords are hashed in `password_hash` and excluded from responses. IDs are returned as strings to preserve PostgreSQL bigint precision in JavaScript.
+
+This is a development CRUD test without login or authorization. It manages `users` only; candidate and company profile workflows will be added later. Deleting a user follows the database's existing cascading foreign keys.
+
+After changing backend or frontend source files, rebuild their containers:
+
+```bash
+docker compose up -d --build api frontend
+```
+
+Image versions, bind addresses, ports, API settings, and secrets are configured in the root `.env`. `example.env` supplies the template. Dependency versions are locked in `backend/composer.lock` and `frontend/package-lock.json`. Database schema initialization stays in the existing SQL files; the API does not run migrations or insert seed data.
+
 ## Schema
 
-See [the database design](docs/schema.md) for tables, relationships, states, and implementation decisions.
+The database definition is in `database/schema.sql`.
 
 ## Tests
+
+With the containers running, test the API through the frontend proxy:
+
+```bash
+python3 tests/api_smoke.py http://127.0.0.1:3000
+```
+
+Use your configured frontend address when it is bound to another IP. The test creates uniquely named users, exercises CRUD and error responses, and deletes its own test users afterward. Identity sequences can advance.
+
+Database constraint tests:
 
 ```bash
 docker compose exec -T db sh -c 'psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < tests/schema.sql
@@ -84,4 +145,4 @@ The supplied database account is a development database administrator, separate 
 
 ## Git
 
-The local repository has a baseline commit on `main` and the database setup on `develop/db`. The development branch is left unmerged. No remote repository has been created or configured.
+The local repository has a baseline commit on `main`, the database setup on `develop/db`, and the user CRUD on `develop/user-crud`, based on `develop/db`. Both development branches are left unmerged. No remote repository has been created or configured.
