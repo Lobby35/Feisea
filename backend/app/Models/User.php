@@ -8,7 +8,7 @@ class User extends Authenticatable
 {
     protected $authPasswordName = 'password_hash';
     protected $fillable = [
-        'name', 'email', 'password_hash', 'role', 'status', 'preferred_locale',
+        'name', 'surname', 'second_surname', 'email', 'password_hash', 'role', 'status', 'preferred_locale',
     ];
 
     protected $hidden = ['password_hash'];
@@ -19,6 +19,7 @@ class User extends Authenticatable
             'id' => 'string',
             'email_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'onboarding_completed_at' => 'datetime',
         ];
     }
 }

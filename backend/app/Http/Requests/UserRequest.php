@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\AccountRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -25,10 +26,9 @@ class UserRequest extends FormRequest
         $required = $this->isMethod('patch') ? 'sometimes' : 'required';
         $options = $this->isMethod('put') ? 'required' : 'sometimes';
 
-        return [
-            'name' => [$required, 'required', 'string', 'max:150'],
+        return AccountRules::names($required) + [
             'email' => [$required, 'required', 'email:rfc', 'max:254', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/u'],
-            'password' => [$this->isMethod('post') ? 'required' : 'sometimes', 'required', 'string', 'min:8', 'max:72'],
+            'password' => array_merge([$this->isMethod('post') ? 'required' : 'sometimes', 'required'], AccountRules::password()),
             'role' => [$options, 'required', Rule::in(['candidate', 'company', 'admin'])],
             'status' => [$options, 'required', Rule::in(['pending', 'active', 'blocked'])],
             'preferred_locale' => [$options, 'required', Rule::in(['ca', 'es', 'en'])],

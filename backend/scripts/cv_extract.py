@@ -33,7 +33,11 @@ for field, pattern in patterns.items():
 lines = [line.strip() for line in text.splitlines() if line.strip()]
 for line in lines[:4]:
     if re.fullmatch(r"[^\W\d_]+(?:[ '-][^\W\d_]+){1,5}", line, re.UNICODE) and not re.search(r"curr[ií]cul|resume|vitae|profile|perfil", line, re.I):
-        suggestions["name"] = line[:150]
+        parts = line.split()
+        suggestions["name"] = parts[0][:150]
+        suggestions["surname"] = parts[1][:150]
+        if len(parts) > 2:
+            suggestions["second_surname"] = " ".join(parts[2:])[:150]
         break
 
 print(json.dumps({"suggestions": suggestions, "message": "Review these suggestions before applying them. Scanned PDFs require OCR."}))

@@ -81,12 +81,20 @@ def pdf():
 def main(base, mailbox):
     password = 'AccountTest!239'
     clients = {}
+    invalid = Client(base)
+    registration = {'name': 'Ada', 'surname': 'Example', 'email': f'invalid-{uuid4().hex}@example.com', 'password': 'weakpassword', 'password_confirmation': 'weakpassword'}
+    errors = invalid.request('POST', '/candidate/register', registration, 422)['errors']
+    assert 'password' in errors
+    registration.update(password=password, password_confirmation=password)
+    del registration['surname']
+    assert 'surname' in invalid.request('POST', '/candidate/register', registration, 422)['errors']
     for role in ['candidate', 'company']:
         client = Client(base)
         email = f'{role}-{uuid4().hex}@example.com'
-        body = {'name': role.title() + ' Test', 'email': email, 'password': password, 'password_confirmation': password}
+        body = {'name': role.title(), 'surname': 'Test', 'email': email, 'password': password, 'password_confirmation': password}
         if role == 'company':
             body['company_name'] = 'Test Company'
+            body['second_surname'] = 'Optional'
         client.request('POST', f'/{role}/register', body, 201)
         client.request('POST', f'/{role}/login', {'email': email, 'password': password}, 403)
         token = verification(mailbox, email)
@@ -101,15 +109,21 @@ def main(base, mailbox):
         client.request('POST', f'/{role}/login', {'email': email, 'password': password})
         data = client.request('GET', f'/{role}/me')
         assert data['user']['status'] == 'active' and data['user']['email_verified_at']
+        assert data['user']['surname'] == 'Test'
+        assert data['user']['second_surname'] == ('Optional' if role == 'company' else None)
+        assert data['user']['onboarding_completed_at'] is None
+        assert client.request('GET', '/me')['user']['id'] == data['user']['id']
+        client.request('POST', f'/{role}/setup/complete', expected=422)
         assert any(cookie.name == 'feisea_test_session' and (cookie.has_nonstandard_attr('HttpOnly') or cookie.has_nonstandard_attr('httponly')) for cookie in client.cookies)
         other = 'company' if role == 'candidate' else 'candidate'
         client.request('GET', f'/{other}/me', expected=403)
         client.request('GET', '/users', expected=403)
         client.request('PATCH', f'/{role}/profile', {'name': 'Should fail'}, 419, {'X-CSRF-Token': 'invalid'})
         client.request('PATCH', f'/{role}/profile', {'name': 'Should fail'}, 403, {'Origin': 'https://untrusted.example'})
-        data = client.request('PATCH', f'/{role}/profile', {'name': 'Edited ' + role, 'city': 'Barcelona', 'status': 'blocked', 'user_id': '1'})
+        data = client.request('PATCH', f'/{role}/profile', {'name': 'Edited ' + role, 'city': 'Barcelona', 'status': 'blocked', 'user_id': '1', 'onboarding_completed_at': '2020-01-01'})
         assert data['user']['status'] == 'active' and data['profile']['city'] == 'Barcelona'
         assert data['user']['name'] == 'Edited ' + role
+        assert data['user']['onboarding_completed_at'] is None
         client.upload(f'/{role}/photo', b'not an image', 'photo.jpg', 'image/jpeg', 422)
         client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
         assert client.request('GET', f'/{role}/photo').startswith(b'\x89PNG')
@@ -134,10 +148,24 @@ def main(base, mailbox):
     anonymous.request('POST', '/company/login', {'email': email, 'password': 'WrongPass!239'}, 401)
     anonymous.request('POST', '/candidate/login', {'email': email, 'password': password}, 401)
     anonymous.request('POST', '/admin/register', {}, 404)
-    for role, (client, _) in clients.items():
+    for role, (client, account_email) in clients.items():
+        client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
+        if role == 'candidate':
+            client.request('POST', '/candidate/setup/complete', expected=422)
+            client.upload('/candidate/cv', pdf(), 'cv.pdf', 'application/pdf')
+        finished = client.request('POST', f'/{role}/setup/complete')['user']['onboarding_completed_at']
+        assert finished
+        assert client.request('POST', f'/{role}/setup/complete')['user']['onboarding_completed_at'] == finished
+        client.request('POST', '/logout')
+        logged_in = client.request('POST', f'/{role}/login', {'email': account_email, 'password': password})
+        assert logged_in['user']['onboarding_completed_at'] == finished
+        client.request('DELETE', f'/{role}/photo')
+        assert client.request('GET', f'/{role}/me')['user']['onboarding_completed_at'] == finished
+        if role == 'candidate':
+            client.request('DELETE', '/candidate/cv')
         client.request('POST', '/logout')
         client.request('GET', f'/{role}/me', expected=401)
-    print('Passed: candidate/company registration, actual verification emails, single-use tokens, login/logout, CSRF, roles, profile ownership, private CVs, and extraction previews.')
+    print('Passed: candidate/company registration, actual verification emails, single-use tokens, login/logout, CSRF, roles, profile ownership, private CVs, extraction previews, split names, password rules and persistent first-login setup.')
 
 
 if __name__ == '__main__':
