@@ -37,7 +37,7 @@ def main():
     )
     passfile.chmod(0o600)
 
-    name = "Borsa de Treball"
+    name = "Feisea"
     server = {
         "Name": name,
         "Group": "Servers",

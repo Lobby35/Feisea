@@ -11,7 +11,7 @@ class AuthenticateSession
 {
     public function handle(Request $request, Closure $next, ?string $role = null)
     {
-        $token = $request->cookie(config('feina.cookie'), '');
+        $token = $request->cookie(config('feisea.cookie'), '');
         abort_unless(is_string($token) && preg_match('/^[a-f0-9]{64}$/', $token), 401, 'Please log in.');
         $session = DB::table('sessions')->where('token_hash', hash('sha256', $token))->where('expires_at', '>', now())->first();
         abort_unless($session, 401, 'Your session has expired.');

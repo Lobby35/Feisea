@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'cookie' => env('AUTH_COOKIE', 'feina_session'),
+    'cookie' => env('AUTH_COOKIE', 'feisea_session'),
     'session_minutes' => (int) env('AUTH_SESSION_MINUTES', 720),
     'verification_minutes' => (int) env('AUTH_VERIFICATION_MINUTES', 60),
     'origins' => array_filter(explode(',', env('APP_ALLOWED_ORIGINS', ''))),

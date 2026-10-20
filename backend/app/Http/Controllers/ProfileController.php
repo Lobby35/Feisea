@@ -62,7 +62,7 @@ class ProfileController
 
     public function uploadPhoto(Request $request)
     {
-        $request->validate(['file' => ['required', 'file', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:'.config('feina.photo_max_kb'), 'dimensions:max_width=4096,max_height=4096']]);
+        $request->validate(['file' => ['required', 'file', 'image', 'mimetypes:image/jpeg,image/png,image/webp', 'max:'.config('feisea.photo_max_kb'), 'dimensions:max_width=4096,max_height=4096']]);
         $this->replace($request, $request->user()->role === 'candidate' ? 'photo_path' : 'logo_path', 'photos');
         return $this->show($request);
     }
@@ -83,7 +83,7 @@ class ProfileController
 
     public function uploadCv(Request $request)
     {
-        $request->validate(['file' => ['required', 'file', 'mimetypes:application/pdf', 'max:'.config('feina.cv_max_kb')]]);
+        $request->validate(['file' => ['required', 'file', 'mimetypes:application/pdf', 'max:'.config('feisea.cv_max_kb')]]);
         $this->replace($request, 'cv_path', 'cvs', [
             'cv_original_name' => mb_substr(basename($request->file('file')->getClientOriginalName()), 0, 255),
             'cv_mime_type' => 'application/pdf', 'cv_size_bytes' => $request->file('file')->getSize(),

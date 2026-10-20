@@ -13,5 +13,5 @@ return [
             'timeout' => 15,
         ],
     ],
-    'from' => ['address' => env('MAIL_FROM_ADDRESS'), 'name' => env('MAIL_FROM_NAME', 'Feina')],
+    'from' => ['address' => env('MAIL_FROM_ADDRESS'), 'name' => env('MAIL_FROM_NAME', 'Feisea')],
 ];

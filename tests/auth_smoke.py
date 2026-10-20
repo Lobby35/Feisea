@@ -101,7 +101,7 @@ def main(base, mailbox):
         client.request('POST', f'/{role}/login', {'email': email, 'password': password})
         data = client.request('GET', f'/{role}/me')
         assert data['user']['status'] == 'active' and data['user']['email_verified_at']
-        assert any(cookie.name == 'feina_test_session' and (cookie.has_nonstandard_attr('HttpOnly') or cookie.has_nonstandard_attr('httponly')) for cookie in client.cookies)
+        assert any(cookie.name == 'feisea_test_session' and (cookie.has_nonstandard_attr('HttpOnly') or cookie.has_nonstandard_attr('httponly')) for cookie in client.cookies)
         other = 'company' if role == 'candidate' else 'candidate'
         client.request('GET', f'/{other}/me', expected=403)
         client.request('GET', '/users', expected=403)

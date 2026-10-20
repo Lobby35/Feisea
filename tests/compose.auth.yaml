@@ -10,7 +10,7 @@ services:
       APP_ENV: testing
       APP_URL: http://127.0.0.1:18081
       APP_ALLOWED_ORIGINS: http://127.0.0.1:18081,http://127.0.0.1:18001
-      AUTH_COOKIE: feina_test_session
+      AUTH_COOKIE: feisea_test_session
       BCRYPT_ROUNDS: 4
       MAIL_HOST: mailpit
       MAIL_PORT: 1025
