@@ -46,12 +46,13 @@ class ProfileController
             'contact_email' => ['sometimes', 'nullable', 'email:rfc', 'max:254'],
             'address' => ['sometimes', 'nullable', 'string', 'max:255'],
         ];
-        $data = $request->validate(AccountRules::names('sometimes') + $common + ($request->user()->role === 'candidate' ? $candidate : $company));
+        $data = $request->validate(($request->user()->role === 'candidate' ? AccountRules::names('sometimes') : []) + $common + ($request->user()->role === 'candidate' ? $candidate : $company));
         DB::transaction(function () use ($request, $data) {
             $names = array_intersect_key($data, array_flip(['name', 'surname', 'second_surname']));
             if ($names) $request->user()->update($names);
             $data = array_diff_key($data, $names);
             if (array_key_exists('company_name', $data)) {
+                $request->user()->update(['name' => $data['company_name'], 'surname' => null, 'second_surname' => null]);
                 $data['name'] = $data['company_name'];
                 unset($data['company_name']);
             }
