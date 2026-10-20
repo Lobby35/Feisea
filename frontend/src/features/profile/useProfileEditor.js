@@ -42,7 +42,7 @@ export default function useProfileEditor() {
     if (result && kind === 'cv') setSuggestions(null);
   }
   async function extract() {
-    const result = await run(api.extract, 'Suggestions are ready. Review them before applying.');
+    const result = await run(api.extract, 'Suggestions ready.');
     if (result) setSuggestions(result.suggestions);
   }
   function apply() {
@@ -51,7 +51,7 @@ export default function useProfileEditor() {
       for (const key of ['name', 'surname', 'second_surname', 'phone', 'linkedin', 'github']) if (!next[key] && suggestions[key]) next[key] = suggestions[key];
       return next;
     });
-    setMessage('Suggestions added to the form. Check them and save your profile.');
+    setMessage('Changes applied. Save your profile.');
   }
   return { account, draft, message, busy, suggestions, change, save, upload, remove, extract, apply };
 }

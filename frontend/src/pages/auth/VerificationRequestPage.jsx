@@ -15,7 +15,6 @@ export default function VerificationRequestPage({ role }) {
   }
   return <>
     <h1>{role === 'candidate' ? 'Candidate' : 'Company'} email verification</h1>
-    <p>Enter your account email to request a new verification link.</p>
     <form onSubmit={submit}>
       <fieldset disabled={busy}>
         <legend>Verification email</legend>

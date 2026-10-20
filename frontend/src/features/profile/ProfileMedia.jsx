@@ -13,7 +13,7 @@ export default function ProfileMedia({ account, busy, suggestions, onUpload, onR
       <h2>CV</h2>
       {account.cv_url && <p><a href={account.cv_url}>Download CV</a> — {account.profile.cv_original_name}</p>}
       <UploadForm title="CV document" kind="cv" busy={busy} onUpload={onUpload} />
-      {account.cv_url && <p><button type="button" disabled={busy} onClick={onExtract}>Read CV suggestions</button>{' '}<button type="button" disabled={busy} onClick={() => onRemove('cv')}>Remove CV</button></p>}
+      {account.cv_url && <p><button type="button" disabled={busy} onClick={onExtract}>Read CV</button>{' '}<button type="button" disabled={busy} onClick={() => onRemove('cv')}>Remove CV</button></p>}
       <CvSuggestions suggestions={suggestions} busy={busy} onApply={onApply} />
     </>}
   </>;
