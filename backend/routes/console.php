@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 Artisan::command('app:migrate', function () {
-    DB::unprepared(file_get_contents(database_path('migrations/001_candidate_photo.sql')));
+    DB::transaction(function () {
+        foreach (glob(database_path('migrations/*.sql')) as $migration) DB::unprepared(file_get_contents($migration));
+    });
     $this->info('Database is up to date.');
 });

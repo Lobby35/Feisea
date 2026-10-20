@@ -3,6 +3,7 @@
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProfileSetupController;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -22,11 +23,13 @@ Route::post('/{role}/register', [AuthController::class, 'register'])->middleware
 Route::post('/{role}/login', [AuthController::class, 'login'])->middleware('throttle:8,1,login');
 Route::post('/{role}/verification/resend', [AuthController::class, 'resend'])->middleware('throttle:3,1,resend');
 Route::post('/verification/verify', [AuthController::class, 'verify'])->middleware('throttle:10,1,verify');
+Route::get('/me', [ProfileController::class, 'show'])->middleware('session.auth');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('session.auth');
 
 foreach (['candidate', 'company'] as $role) {
     Route::prefix($role)->middleware('session.auth:'.$role)->group(function () use ($role) {
         Route::get('/me', [ProfileController::class, 'show']);
+        Route::post('/setup/complete', [ProfileSetupController::class, 'complete']);
         Route::patch('/profile', [ProfileController::class, 'update']);
         Route::get('/photo', [ProfileController::class, 'photo']);
         Route::post('/photo', [ProfileController::class, 'uploadPhoto']);

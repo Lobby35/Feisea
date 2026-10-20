@@ -5,6 +5,9 @@ BEGIN;
 CREATE TABLE users (
     id bigint,
     name varchar(150),
+    surname varchar(150),
+    second_surname varchar(150),
+    onboarding_completed_at timestamptz,
     email varchar(254),
     password_hash varchar(255),
     role varchar(20),
