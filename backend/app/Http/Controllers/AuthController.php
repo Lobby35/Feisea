@@ -16,14 +16,16 @@ class AuthController
     public function register(Request $request, string $role, Verification $verification)
     {
         $this->normalizeEmail($request);
-        $data = $request->validate(AccountRules::names() + [
+        $data = $request->validate(($role === 'candidate' ? AccountRules::names() : []) + [
             'email' => ['required', 'email:rfc', 'max:254', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/u', Rule::unique('users')],
             'password' => array_merge(['required', 'confirmed'], AccountRules::password()),
             'company_name' => [$role === 'company' ? 'required' : 'prohibited', 'string', 'max:200'],
         ]);
         DB::transaction(function () use ($data, $role, $verification) {
             $user = User::create([
-                'name' => $data['name'], 'surname' => $data['surname'], 'second_surname' => $data['second_surname'] ?? null, 'email' => $data['email'], 'password_hash' => Hash::make($data['password']),
+                'name' => $role === 'company' ? $data['company_name'] : $data['name'],
+                'surname' => $data['surname'] ?? null, 'second_surname' => $data['second_surname'] ?? null,
+                'email' => $data['email'], 'password_hash' => Hash::make($data['password']),
                 'role' => $role, 'status' => 'pending',
             ]);
             if ($role === 'candidate') {

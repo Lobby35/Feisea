@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE TABLE users (
     id bigint,
-    name varchar(150),
+    name varchar(200),
     surname varchar(150),
     second_surname varchar(150),
     onboarding_completed_at timestamptz,

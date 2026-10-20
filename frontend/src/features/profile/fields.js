@@ -5,7 +5,7 @@ export const fieldType = name => name === 'contact_email' ? 'email' : ['website'
 export function profileDraft(account) {
   const candidate = account.user.role === 'candidate';
   const draft = {};
-  for (const key of ['name', 'surname', 'second_surname']) draft[key] = account.user[key] ?? '';
+  for (const key of candidate ? ['name', 'surname', 'second_surname'] : []) draft[key] = account.user[key] ?? '';
   for (const [key] of candidate ? candidateFields : companyFields) draft[key] = key === 'company_name' ? account.profile.name : account.profile[key] ?? '';
   draft[candidate ? 'summary' : 'description'] = account.profile[candidate ? 'summary' : 'description'] ?? '';
   if (candidate) {

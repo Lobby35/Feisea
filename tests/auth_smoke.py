@@ -93,8 +93,8 @@ def main(base, mailbox):
         email = f'{role}-{uuid4().hex}@example.com'
         body = {'name': role.title(), 'surname': 'Test', 'email': email, 'password': password, 'password_confirmation': password}
         if role == 'company':
-            body['company_name'] = 'Test Company'
-            body['second_surname'] = 'Optional'
+            del body['name'], body['surname']
+            body['company_name'] = 'Test Company ' + 'x' * 187
         client.request('POST', f'/{role}/register', body, 201)
         client.request('POST', f'/{role}/login', {'email': email, 'password': password}, 403)
         token = verification(mailbox, email)
@@ -109,8 +109,10 @@ def main(base, mailbox):
         client.request('POST', f'/{role}/login', {'email': email, 'password': password})
         data = client.request('GET', f'/{role}/me')
         assert data['user']['status'] == 'active' and data['user']['email_verified_at']
-        assert data['user']['surname'] == 'Test'
-        assert data['user']['second_surname'] == ('Optional' if role == 'company' else None)
+        assert data['user']['surname'] == ('Test' if role == 'candidate' else None)
+        assert data['user']['second_surname'] is None
+        if role == 'company':
+            assert data['user']['name'] == body['company_name'] == data['profile']['name']
         assert data['user']['onboarding_completed_at'] is None
         assert client.request('GET', '/me')['user']['id'] == data['user']['id']
         client.request('POST', f'/{role}/setup/complete', expected=422)
@@ -120,9 +122,16 @@ def main(base, mailbox):
         client.request('GET', '/users', expected=403)
         client.request('PATCH', f'/{role}/profile', {'name': 'Should fail'}, 419, {'X-CSRF-Token': 'invalid'})
         client.request('PATCH', f'/{role}/profile', {'name': 'Should fail'}, 403, {'Origin': 'https://untrusted.example'})
-        data = client.request('PATCH', f'/{role}/profile', {'name': 'Edited ' + role, 'city': 'Barcelona', 'status': 'blocked', 'user_id': '1', 'onboarding_completed_at': '2020-01-01'})
+        changes = {'city': 'Barcelona', 'status': 'blocked', 'user_id': '1', 'onboarding_completed_at': '2020-01-01'}
+        changes['name' if role == 'candidate' else 'company_name'] = 'Edited ' + role
+        if role == 'company':
+            changes.update(name='Ignore personal name', surname='Ignore surname', second_surname='Ignore second surname')
+        data = client.request('PATCH', f'/{role}/profile', changes)
         assert data['user']['status'] == 'active' and data['profile']['city'] == 'Barcelona'
         assert data['user']['name'] == 'Edited ' + role
+        if role == 'company':
+            assert data['profile']['name'] == data['user']['name']
+            assert data['user']['surname'] is None and data['user']['second_surname'] is None
         assert data['user']['onboarding_completed_at'] is None
         client.upload(f'/{role}/photo', b'not an image', 'photo.jpg', 'image/jpeg', 422)
         client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')

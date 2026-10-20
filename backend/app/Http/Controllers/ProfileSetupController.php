@@ -16,8 +16,8 @@ class ProfileSetupController
         DB::transaction(function () use ($request) {
             $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             if ($user->onboarding_completed_at) return;
-            validator($user->toArray(), AccountRules::names())->validate();
             $candidate = $user->role === 'candidate';
+            if ($candidate) validator($user->toArray(), AccountRules::names())->validate();
             $profile = DB::table($candidate ? 'candidate_profiles' : 'companies')
                 ->where('user_id', $user->id)->lockForUpdate()->first();
             abort_unless($profile, 404, 'Profile not found.');
