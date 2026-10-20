@@ -10,7 +10,7 @@ import { passwordError } from '../../features/auth/passwordRequirements';
 export default function AccountPage({ role, register }) {
   const title = role === 'candidate' ? 'Candidate' : 'Company';
   const [fields, setFields] = useState({ name: '', surname: '', second_surname: '', company_name: '', email: '', password: '', password_confirmation: '' });
-  const [message, setMessage] = useState(() => new URLSearchParams(window.location.search).has('registered') ? 'Account created. Check your email to verify it before logging in.' : '');
+  const [message, setMessage] = useState(() => new URLSearchParams(window.location.search).has('registered') ? 'Check your email to verify your account.' : '');
   const [busy, setBusy] = useState(false);
   const change = name => value => setFields(old => ({ ...old, [name]: value }));
   async function submit(event) {

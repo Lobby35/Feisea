@@ -7,10 +7,11 @@ export default function VerifyPage() {
   const [token] = useState(() => new URLSearchParams(window.location.hash.slice(1)).get('token'));
   const [message, setMessage] = useState('Verifying your email…');
   const [role, setRole] = useState(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     window.history.replaceState(null, '', '/verify-email');
-    if (!token) { setMessage('This verification link is incomplete. Request a new email from the login page.'); return; }
-    api.verify(token).then(result => { setMessage(result.message); setRole(result.role); }).catch(error => setMessage(error.message));
+    if (!token) { setMessage('Invalid verification link.'); setFailed(true); return; }
+    api.verify(token).then(result => { setMessage(result.message); setRole(result.role); }).catch(error => { setMessage(error.message); setFailed(true); });
   }, [token]);
-  return <><h1>Email verification</h1><Notice>{message}</Notice>{role && <p><a href={`/${role}/login`}>Continue to {role === 'candidate' ? 'candidate' : 'company'} login</a></p>}</>;
+  return <><h1>Email verification</h1><Notice>{message}</Notice>{role && <p><a href={`/${role}/login`}>Log in</a></p>}{failed && <p><a href="/candidate/verification">Candidate verification</a>{' · '}<a href="/company/verification">Company verification</a></p>}</>;
 }
