@@ -4,7 +4,7 @@ FROM ${COMPOSER_IMAGE} AS composer
 FROM ${PHP_IMAGE}
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends libpq-dev libonig-dev unzip \
+    && apt-get install -y --no-install-recommends libpq-dev libonig-dev unzip python3 poppler-utils \
     && docker-php-ext-install pdo_pgsql mbstring \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
@@ -16,7 +16,8 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --prefer-dist --no-scripts
 COPY . .
 RUN composer dump-autoload --no-dev --no-scripts \
-    && mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-CMD ["sh", "-c", "php artisan config:cache && exec apache2-foreground"]
+RUN printf 'upload_max_filesize=11M\npost_max_size=12M\n' > /usr/local/etc/php/conf.d/uploads.ini
+CMD ["sh", "-c", "php artisan app:migrate && php artisan config:cache && exec apache2-foreground"]

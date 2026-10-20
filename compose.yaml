@@ -17,7 +17,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -45,11 +45,28 @@ services:
       DB_USERNAME: ${POSTGRES_USER:?Set POSTGRES_USER in .env}
       DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       DB_SSLMODE: ${API_DB_SSLMODE:?Set API_DB_SSLMODE in .env}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:?Set APP_ALLOWED_ORIGINS in .env}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES:?Set TRUSTED_PROXIES in .env}
+      AUTH_COOKIE: ${AUTH_COOKIE:?Set AUTH_COOKIE in .env}
+      AUTH_SESSION_MINUTES: ${AUTH_SESSION_MINUTES:?Set AUTH_SESSION_MINUTES in .env}
+      AUTH_VERIFICATION_MINUTES: ${AUTH_VERIFICATION_MINUTES:?Set AUTH_VERIFICATION_MINUTES in .env}
+      PHOTO_MAX_KB: ${PHOTO_MAX_KB:?Set PHOTO_MAX_KB in .env}
+      CV_MAX_KB: ${CV_MAX_KB:?Set CV_MAX_KB in .env}
+      MAIL_MAILER: ${MAIL_MAILER:?Set MAIL_MAILER in .env}
+      MAIL_HOST: ${MAIL_HOST:?Set MAIL_HOST in .env}
+      MAIL_PORT: ${MAIL_PORT:?Set MAIL_PORT in .env}
+      MAIL_SCHEME: ${MAIL_SCHEME:?Set MAIL_SCHEME in .env}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?Set MAIL_FROM_ADDRESS in .env}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:?Set MAIL_FROM_NAME in .env}
       TZ: ${TZ:?Set TZ in .env}
     ports:
       - "${API_BIND_ADDRESS:?Set API_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
       - "${LAN_BIND_ADDRESS:?Set LAN_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
       - "${TAILSCALE_BIND_ADDRESS:?Set TAILSCALE_BIND_ADDRESS in .env}:${API_PORT:?Set API_PORT in .env}:80"
+    volumes:
+      - api_storage:/var/www/html/storage
     healthcheck:
       test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1/api/health') === false ? 1 : 0);"]
       interval: 5s
@@ -104,3 +121,4 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+  api_storage:

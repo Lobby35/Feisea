@@ -1,0 +1,31 @@
+services:
+  db:
+    image: borsa-de-treball-db
+    ports: !reset []
+  api:
+    image: borsa-de-treball-api
+    ports: !override
+      - "127.0.0.1:18001:80"
+    environment:
+      APP_ENV: testing
+      APP_URL: http://127.0.0.1:18081
+      APP_ALLOWED_ORIGINS: http://127.0.0.1:18081,http://127.0.0.1:18001
+      AUTH_COOKIE: feina_test_session
+      BCRYPT_ROUNDS: 4
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+      MAIL_SCHEME: smtp
+      MAIL_USERNAME: ""
+      MAIL_PASSWORD: ""
+      MAIL_FROM_ADDRESS: test@example.com
+    depends_on:
+      mailpit:
+        condition: service_started
+  frontend:
+    image: borsa-de-treball-frontend
+    ports: !override
+      - "127.0.0.1:18081:80"
+  mailpit:
+    image: ${TEST_MAILPIT_IMAGE:?Set TEST_MAILPIT_IMAGE in .env}
+    ports:
+      - "127.0.0.1:18025:8025"
