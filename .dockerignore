@@ -5,3 +5,6 @@ example.env
 docs
 tests
 README.md
+backend
+frontend
+deploy

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -15,4 +17,27 @@ Route::get('/health', function () {
 });
 
 Route::pattern('user', '[1-9][0-9]{0,18}');
-Route::apiResource('users', UserController::class);
+Route::pattern('role', 'candidate|company');
+Route::post('/{role}/register', [AuthController::class, 'register'])->middleware('throttle:5,1,register');
+Route::post('/{role}/login', [AuthController::class, 'login'])->middleware('throttle:8,1,login');
+Route::post('/{role}/verification/resend', [AuthController::class, 'resend'])->middleware('throttle:3,1,resend');
+Route::post('/verification/verify', [AuthController::class, 'verify'])->middleware('throttle:10,1,verify');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('session.auth');
+
+foreach (['candidate', 'company'] as $role) {
+    Route::prefix($role)->middleware('session.auth:'.$role)->group(function () use ($role) {
+        Route::get('/me', [ProfileController::class, 'show']);
+        Route::patch('/profile', [ProfileController::class, 'update']);
+        Route::get('/photo', [ProfileController::class, 'photo']);
+        Route::post('/photo', [ProfileController::class, 'uploadPhoto']);
+        Route::delete('/photo', [ProfileController::class, 'deletePhoto']);
+        if ($role === 'candidate') {
+            Route::get('/cv', [ProfileController::class, 'cv']);
+            Route::post('/cv', [ProfileController::class, 'uploadCv']);
+            Route::delete('/cv', [ProfileController::class, 'deleteCv']);
+            Route::post('/cv/extract', [ProfileController::class, 'extractCv'])->middleware('throttle:5,1,extract');
+        }
+    });
+}
+
+Route::apiResource('users', UserController::class)->middleware('session.auth:admin');

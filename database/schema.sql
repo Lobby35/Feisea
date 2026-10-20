@@ -64,6 +64,7 @@ CREATE TABLE candidate_profiles (
     id bigint,
     user_id bigint,
     user_role varchar(20),
+    photo_path varchar(500),
     phone varchar(30),
     city varchar(120),
     mobility boolean,

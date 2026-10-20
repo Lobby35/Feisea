@@ -9,3 +9,5 @@ frontend/dist/
 backend/bootstrap/cache/*.php
 backend/storage/**
 !backend/storage/.gitkeep
+__pycache__/
+*.py[cod]
