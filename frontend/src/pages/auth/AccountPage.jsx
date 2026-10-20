@@ -5,7 +5,7 @@ import Field from '../../components/Field';
 import NameFields from '../../components/NameFields';
 import Notice from '../../components/Notice';
 import PasswordChecklist from '../../features/auth/PasswordChecklist';
-import { passwordRequirements } from '../../features/auth/passwordRequirements';
+import { passwordError } from '../../features/auth/passwordRequirements';
 
 export default function AccountPage({ role, register }) {
   const title = role === 'candidate' ? 'Candidate' : 'Company';
@@ -38,7 +38,7 @@ export default function AccountPage({ role, register }) {
         {register && role === 'candidate' && <NameFields values={fields} onChange={change} />}
         {register && role === 'company' && <Field label="Company name" name="company_name" value={fields.company_name} onChange={change('company_name')} required maxLength={200} autoComplete="organization" />}
         <Field label="Email" name="email" type="email" value={fields.email} onChange={change('email')} required maxLength={254} autoComplete="email" />
-        <Field label="Password" name="password" type="password" value={fields.password} onChange={change('password')} required aria-describedby={register ? 'password-requirements' : undefined} minLength={register ? 12 : undefined} maxLength={register ? 72 : 1024} onInput={event => { if (register) event.target.setCustomValidity(passwordRequirements(event.target.value).every(item => item.met) ? '' : 'Meet all password requirements.'); }} autoComplete={register ? 'new-password' : 'current-password'} />
+        <Field label="Password" name="password" type="password" value={fields.password} onChange={change('password')} required aria-describedby={register ? 'password-requirements' : undefined} minLength={register ? 12 : undefined} maxLength={register ? 72 : 1024} onInput={event => { if (register) event.target.setCustomValidity(passwordError(event.target.value)); }} autoComplete={register ? 'new-password' : 'current-password'} />
         {register && <Field label="Confirm password" name="password_confirmation" type="password" value={fields.password_confirmation} onChange={change('password_confirmation')} required maxLength={72} autoComplete="new-password" />}
         {register && <PasswordChecklist password={fields.password} />}
         <button type="submit">{busy ? 'Please wait…' : register ? 'Create account' : 'Log in'}</button>
