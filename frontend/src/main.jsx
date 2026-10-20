@@ -173,7 +173,7 @@ function Dashboard({ role }) {
 }
 
 function Home() {
-  return <><h1>Feina</h1><p>A job board for candidates and companies.</p>
+  return <><h1>Feisea</h1><p>A job board for candidates and companies.</p>
     <section><h2>Candidates</h2><p>Create a profile and upload your CV.</p><p><a href="/candidate/register">Register as a candidate</a>{' · '}<a href="/candidate/login">Candidate login</a></p></section>
     <section><h2>Companies</h2><p>Create a company profile.</p><p><a href="/company/register">Register a company</a>{' · '}<a href="/company/login">Company login</a></p></section>
   </>;
@@ -187,7 +187,7 @@ function App() {
   else if (path === '/verify-email') page = <VerifyPage />;
   else if (match) page = match[2] === 'dashboard' ? <Dashboard role={match[1]} /> : <AccountPage role={match[1]} register={match[2] === 'register'} />;
   else page = <><h1>Page not found</h1><a href="/">Return home</a></>;
-  return <><header><nav><a href="/">Feina</a>{' | '}<a href="/candidate/login">Candidates</a>{' | '}<a href="/company/login">Companies</a></nav><hr /></header><main>{page}</main></>;
+  return <><header><nav><a href="/">Feisea</a>{' | '}<a href="/candidate/login">Candidates</a>{' | '}<a href="/company/login">Companies</a></nav><hr /></header><main>{page}</main></>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);

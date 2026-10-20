@@ -1,5 +1,5 @@
 {
-    "name": "borsa-de-treball/api",
+    "name": "feisea/api",
     "type": "project",
     "require": {
         "php": "^8.3",

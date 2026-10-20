@@ -80,24 +80,24 @@ class AuthController
         $token = bin2hex(random_bytes(32));
         DB::transaction(function () use ($request, $user, $token) {
             DB::table('sessions')->where('expires_at', '<=', now())->delete();
-            $old = $request->cookie(config('feina.cookie'));
+            $old = $request->cookie(config('feisea.cookie'));
             if (is_string($old)) DB::table('sessions')->where('token_hash', hash('sha256', $old))->delete();
             DB::table('sessions')->insert([
                 'user_id' => $user->id, 'token_hash' => hash('sha256', $token), 'ip_address' => $request->ip(),
                 'user_agent' => Str::limit($request->userAgent() ?? '', 500, ''),
-                'expires_at' => now()->addMinutes(config('feina.session_minutes')),
+                'expires_at' => now()->addMinutes(config('feisea.session_minutes')),
             ]);
             $user->forceFill(['last_login_at' => now()])->save();
         });
 
         return response()->json(['user' => $user, 'csrf_token' => hash_hmac('sha256', $token, config('app.key'))])
-            ->cookie(config('feina.cookie'), $token, config('feina.session_minutes'), '/', null, $request->isSecure(), true, false, 'lax');
+            ->cookie(config('feisea.cookie'), $token, config('feisea.session_minutes'), '/', null, $request->isSecure(), true, false, 'lax');
     }
 
     public function logout(Request $request)
     {
         DB::table('sessions')->where('id', $request->attributes->get('session_id'))->delete();
-        return response()->json(['message' => 'Logged out.'])->withoutCookie(config('feina.cookie'));
+        return response()->json(['message' => 'Logged out.'])->withoutCookie(config('feisea.cookie'));
     }
 
     private function normalizeEmail(Request $request): void

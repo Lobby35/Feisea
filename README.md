@@ -1,4 +1,4 @@
-# Feina
+# Feisea
 
 Student and company job board based on `Projecte_Borsa_de_Treball.pdf`. Laravel 12, React, PostgreSQL 16, and Docker Compose.
 
@@ -21,7 +21,9 @@ The server's existing `.env` already contains these values. It is ignored by Git
 
 ## Pages
 
-The public website is https://feina.lobby34.eu.
+The public website is https://feisea.lobby34.eu. The previous domain redirects here.
+
+Existing installations retain their Docker project and database names to preserve stored data.
 
 | Candidate | Company |
 | --- | --- |
@@ -90,7 +92,7 @@ Uploaded files are outside the public document root and served through authentic
 
 ## Server Nginx
 
-The active host configuration is `/home/srvub24/Nginx/feina.lobby34.eu.conf`, with its source in `deploy/nginx/feina.lobby34.eu.conf`. It proxies to the frontend's LAN port, redirects HTTP to HTTPS, and uses the existing Certbot certificate volume and ACME webroot. `deploy/nginx/feina.http.conf` is the initial HTTP-only configuration for issuing a certificate on a new server.
+The active host configuration is `/home/srvub24/Nginx/feisea.lobby34.eu.conf`, with its source in `deploy/nginx/feisea.lobby34.eu.conf`. It proxies to the frontend's LAN port, redirects HTTP to HTTPS, and uses the existing Certbot certificate volume and ACME webroot. `deploy/nginx/feisea.http.conf` is the initial HTTP-only configuration for issuing a certificate on a new server.
 
 The server Compose file includes a read-only mount for this host. The running proxy was updated through a validated reload; the shared Nginx container and other site configurations were preserved.
 
@@ -104,7 +106,7 @@ docker exec lobby34_nginx nginx -s reload
 Renew this certificate with the existing Certbot service, then validate and reload:
 
 ```bash
-docker compose -f /home/srvub24/Nginx/docker-compose.yml run --rm certbot renew --cert-name feina.lobby34.eu
+docker compose -f /home/srvub24/Nginx/docker-compose.yml run --rm certbot renew --cert-name feisea.lobby34.eu
 docker exec lobby34_nginx nginx -t
 docker exec lobby34_nginx nginx -s reload
 ```
@@ -115,9 +117,9 @@ Authentication tests use a separate database, private storage volume, and Mailpi
 
 ```bash
 docker compose build
-docker compose -p feina-auth-tests -f compose.yaml -f tests/compose.auth.yaml up -d --no-build db mailpit api frontend
+docker compose -p feisea-auth-tests -f compose.yaml -f tests/compose.auth.yaml up -d --no-build db mailpit api frontend
 python3 tests/auth_smoke.py http://127.0.0.1:18081 http://127.0.0.1:18025
-docker compose -p feina-auth-tests -f compose.yaml -f tests/compose.auth.yaml down -v
+docker compose -p feisea-auth-tests -f compose.yaml -f tests/compose.auth.yaml down -v
 ```
 
 The final command removes only the named test project's data. The tests exercise both account types, email delivery and link consumption, login/logout, CSRF, role boundaries, file validation and access, profile ownership, and CV extraction previews.
