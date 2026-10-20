@@ -27,9 +27,7 @@ export default function useProfileEditor() {
     await run(async () => {
       const result = await api.save(role, draft);
       if (complete) {
-        const finished = await api.completeSetup(role);
-        window.location.assign(`/${role}/dashboard`);
-        return finished;
+        return api.completeSetup(role);
       }
       return result;
     }, 'Profile saved.');
