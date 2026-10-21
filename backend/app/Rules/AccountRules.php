@@ -18,7 +18,9 @@ class AccountRules
     public static function password(): array
     {
         return ['string', Password::min(12)->mixedCase()->numbers()->symbols(), 'max:72', function ($attribute, $value, $fail) {
-            if (is_string($value) && strlen($value) > 72) $fail('Password must not exceed 72 bytes.');
+            if (is_string($value) && strlen($value) > 72) {
+                $fail('Password must not exceed 72 bytes.');
+            }
         }];
     }
 }

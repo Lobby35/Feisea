@@ -15,23 +15,51 @@ class ProfileSetupController
     {
         DB::transaction(function () use ($request) {
             $user = User::whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
-            if ($user->onboarding_completed_at) return;
-            $candidate = $user->role === 'candidate';
-            if ($candidate) validator($user->toArray(), AccountRules::names())->validate();
-            $profile = DB::table($candidate ? 'candidate_profiles' : 'companies')
-                ->where('user_id', $user->id)->lockForUpdate()->first();
-            abort_unless($profile, 404, 'Profile not found.');
-            $required = $candidate ? ['photo_path' => 'Upload a profile photo.', 'cv_path' => 'Upload your CV.'] : ['logo_path' => 'Upload a company logo.'];
-            $errors = [];
-            foreach ($required as $field => $message) {
-                if (!$profile->{$field} || !Storage::exists($profile->{$field})) $errors[$field] = $message;
+            if ($user->onboarding_completed_at) {
+                return;
             }
-            if (!$candidate && !trim($profile->name)) $errors['company_name'] = 'Enter the company name.';
-            if ($errors) throw ValidationException::withMessages($errors);
-            $user->forceFill(['onboarding_completed_at' => now()])->save();
+
+            if ($user->role === 'candidate') {
+                validator($user->toArray(), AccountRules::names())->validate();
+                $profile = $user->candidateProfile()->lockForUpdate()->first();
+            } else {
+                $profile = $user->company()->lockForUpdate()->first();
+            }
+
+            if (!$profile) {
+                abort(404, 'Profile not found.');
+            }
+
+            $errors = [];
+            if ($user->role === 'candidate') {
+                if (!$profile->photo_path || !Storage::exists($profile->photo_path)) {
+                    $errors['photo_path'] = 'Upload a profile photo.';
+                }
+                if (!$profile->cv_path || !Storage::exists($profile->cv_path)) {
+                    $errors['cv_path'] = 'Upload your CV.';
+                }
+            } else {
+                if (!$profile->logo_path || !Storage::exists($profile->logo_path)) {
+                    $errors['logo_path'] = 'Upload a company logo.';
+                }
+                if (!trim($profile->name)) {
+                    $errors['company_name'] = 'Enter the company name.';
+                }
+            }
+
+            if (!empty($errors)) {
+                throw ValidationException::withMessages($errors);
+            }
+
+            $user->onboarding_completed_at = now();
+            $user->save();
         });
+
         $user = $request->user()->fresh();
-        $request->setUserResolver(fn () => $user);
+        $request->setUserResolver(function () use ($user) {
+            return $user;
+        });
+
         return $profiles->show($request);
     }
 }

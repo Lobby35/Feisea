@@ -13,6 +13,16 @@ class User extends Authenticatable
 
     protected $hidden = ['password_hash'];
 
+    public function candidateProfile()
+    {
+        return $this->hasOne(CandidateProfile::class);
+    }
+
+    public function company()
+    {
+        return $this->hasOne(Company::class);
+    }
+
     protected function casts(): array
     {
         return [
