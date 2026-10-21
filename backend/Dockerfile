@@ -19,5 +19,5 @@ RUN composer dump-autoload --no-dev --no-scripts \
     && mkdir -p storage/app/private storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache
 
-RUN printf 'upload_max_filesize=11M\npost_max_size=12M\n' > /usr/local/etc/php/conf.d/uploads.ini
+COPY docker/php.ini /usr/local/etc/php/conf.d/feisea.ini
 CMD ["sh", "-c", "php artisan app:migrate && php artisan config:cache && exec apache2-foreground"]
