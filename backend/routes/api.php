@@ -26,21 +26,26 @@ Route::post('/verification/verify', [AuthController::class, 'verify'])->middlewa
 Route::get('/me', [ProfileController::class, 'show'])->middleware('session.auth');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('session.auth');
 
-foreach (['candidate', 'company'] as $role) {
-    Route::prefix($role)->middleware('session.auth:'.$role)->group(function () use ($role) {
-        Route::get('/me', [ProfileController::class, 'show']);
-        Route::post('/setup/complete', [ProfileSetupController::class, 'complete']);
-        Route::patch('/profile', [ProfileController::class, 'update']);
-        Route::get('/photo', [ProfileController::class, 'photo']);
-        Route::post('/photo', [ProfileController::class, 'uploadPhoto']);
-        Route::delete('/photo', [ProfileController::class, 'deletePhoto']);
-        if ($role === 'candidate') {
-            Route::get('/cv', [ProfileController::class, 'cv']);
-            Route::post('/cv', [ProfileController::class, 'uploadCv']);
-            Route::delete('/cv', [ProfileController::class, 'deleteCv']);
-            Route::post('/cv/extract', [ProfileController::class, 'extractCv'])->middleware('throttle:5,1,extract');
-        }
-    });
-}
+Route::prefix('candidate')->middleware('session.auth:candidate')->group(function () {
+    Route::get('/me', [ProfileController::class, 'show']);
+    Route::post('/setup/complete', [ProfileSetupController::class, 'complete']);
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::get('/photo', [ProfileController::class, 'photo']);
+    Route::post('/photo', [ProfileController::class, 'uploadPhoto']);
+    Route::delete('/photo', [ProfileController::class, 'deletePhoto']);
+    Route::get('/cv', [ProfileController::class, 'cv']);
+    Route::post('/cv', [ProfileController::class, 'uploadCv']);
+    Route::delete('/cv', [ProfileController::class, 'deleteCv']);
+    Route::post('/cv/extract', [ProfileController::class, 'extractCv'])->middleware('throttle:5,1,extract');
+});
+
+Route::prefix('company')->middleware('session.auth:company')->group(function () {
+    Route::get('/me', [ProfileController::class, 'show']);
+    Route::post('/setup/complete', [ProfileSetupController::class, 'complete']);
+    Route::patch('/profile', [ProfileController::class, 'update']);
+    Route::get('/photo', [ProfileController::class, 'photo']);
+    Route::post('/photo', [ProfileController::class, 'uploadPhoto']);
+    Route::delete('/photo', [ProfileController::class, 'deletePhoto']);
+});
 
 Route::apiResource('users', UserController::class)->middleware('session.auth:admin');

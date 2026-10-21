@@ -108,6 +108,7 @@ def main(base, mailbox):
         client.request('POST', '/verification/verify', {'token': token}, 422)
         client.request('POST', f'/{role}/login', {'email': email, 'password': password})
         data = client.request('GET', f'/{role}/me')
+        assert not {'photo_path', 'logo_path', 'cv_path'} & data['profile'].keys()
         assert data['user']['status'] == 'active' and data['user']['email_verified_at']
         assert data['user']['surname'] == ('Test' if role == 'candidate' else None)
         assert data['user']['second_surname'] is None
@@ -134,14 +135,16 @@ def main(base, mailbox):
             assert data['user']['surname'] is None and data['user']['second_surname'] is None
         assert data['user']['onboarding_completed_at'] is None
         client.upload(f'/{role}/photo', b'not an image', 'photo.jpg', 'image/jpeg', 422)
-        client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
+        uploaded = client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
+        assert not {'photo_path', 'logo_path', 'cv_path'} & uploaded['profile'].keys()
         assert client.request('GET', f'/{role}/photo').startswith(b'\x89PNG')
         client.request('DELETE', f'/{role}/photo')
         client.request('GET', f'/{role}/photo', expected=404)
         clients[role] = (client, email)
     candidate, _ = clients['candidate']
     candidate.upload('/candidate/cv', b'not a pdf', 'cv.pdf', 'application/pdf', 422)
-    candidate.upload('/candidate/cv', pdf(), 'cv.pdf', 'application/pdf')
+    uploaded = candidate.upload('/candidate/cv', pdf(), 'cv.pdf', 'application/pdf')
+    assert 'cv_path' not in uploaded['profile']
     assert candidate.request('GET', '/candidate/cv').startswith(b'%PDF-')
     suggestions = candidate.request('POST', '/candidate/cv/extract')['suggestions']
     assert suggestions['email'] == 'ada@example.com' and 'github.com/ada-example' in suggestions['github']
