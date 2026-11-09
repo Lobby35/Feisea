@@ -18,13 +18,19 @@ class AuthController
         $this->normalizeEmail($request);
 
         $rules = [
-            'email' => ['required', 'email:rfc', 'max:254', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/u', Rule::unique('users')],
+            'email' => ['bail', 'required', 'email:rfc', 'max:254', 'regex:/^[^\s@]+@[^\s@]+\.[^\s@]+$/u', Rule::unique('users')],
             'password' => array_merge(['required', 'confirmed'], AccountRules::password()),
         ];
 
         if ($role === 'candidate') {
             $rules = array_merge($rules, AccountRules::names());
             $rules['company_name'] = ['prohibited'];
+            $rules['email'][] = function ($attribute, $value, $fail) {
+                $domain = Str::afterLast($value, '@');
+                if (!in_array($domain, config('feisea.candidate_email_domains'), true)) {
+                    $fail('Use an email address from an allowed school domain.');
+                }
+            };
         } else {
             $rules['company_name'] = ['required', 'string', 'max:200'];
         }

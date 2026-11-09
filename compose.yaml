@@ -30,7 +30,8 @@ services:
       args:
         PHP_IMAGE: ${PHP_IMAGE:?Set PHP_IMAGE in .env}
         COMPOSER_IMAGE: ${COMPOSER_IMAGE:?Set COMPOSER_IMAGE in .env}
-    environment:
+    environment: &api_environment
+      CANDIDATE_EMAIL_DOMAINS: ${CANDIDATE_EMAIL_DOMAINS:-cirvianum.cat}
       APP_NAME: ${APP_NAME:?Set APP_NAME in .env}
       APP_ENV: ${APP_ENV:?Set APP_ENV in .env}
       APP_DEBUG: ${APP_DEBUG:?Set APP_DEBUG in .env}
@@ -75,6 +76,18 @@ services:
       start_period: 20s
     depends_on:
       db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mail-worker:
+    user: www-data
+    image: ${COMPOSE_PROJECT_NAME}-api
+    environment: *api_environment
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=5", "--backoff=60", "--timeout=30"]
+    volumes:
+      - api_storage:/var/www/html/storage
+    depends_on:
+      api:
         condition: service_healthy
     restart: unless-stopped
 

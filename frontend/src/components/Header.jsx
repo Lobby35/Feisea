@@ -18,6 +18,7 @@ export default function Header() {
   return <header>
     <nav aria-label="Main navigation">
       <a href="/">Feisea</a>
+      <a href="/offers">Offers</a>
       {account ? <>
         <a href={`/${role}/dashboard`}>Dashboard</a>
         <a href={profilePath} aria-label="Open profile">

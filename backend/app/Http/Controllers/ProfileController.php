@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ProfileController
 {
@@ -25,6 +26,10 @@ class ProfileController
             $cvUrl = '/api/candidate/cv';
         }
 
+        if ($request->user()->role === 'candidate') {
+            $profile['skill_ids'] = $this->profile($request)->skills()->pluck('skills.id');
+        }
+
         unset($profile['photo_path'], $profile['logo_path'], $profile['cv_path']);
 
         return response()->json([
@@ -38,15 +43,28 @@ class ProfileController
 
     public function update(Request $request)
     {
+        $townData = json_decode(file_get_contents(resource_path('data/municipalities.json')), true);
+        $townNames = array_column($townData['municipalities'], 'name');
+        $profile = $this->profile($request);
+        if ($profile->city && !in_array($profile->city, $townNames, true)) {
+            $townNames[] = $profile->city;
+        }
         $rules = [
             'phone' => 'sometimes|nullable|string|max:30',
-            'city' => 'sometimes|nullable|string|max:120',
+            'city' => ['sometimes', 'nullable', Rule::in($townNames)],
         ];
 
         if ($request->user()->role === 'candidate') {
+            $studyLevels = array_keys(config('studies'));
+            if ($profile->current_studies && !in_array($profile->current_studies, $studyLevels, true)) {
+                $studyLevels[] = $profile->current_studies;
+            }
             $rules = array_merge($rules, AccountRules::names('sometimes'), [
                 'summary' => 'sometimes|nullable|string|max:10000',
-                'current_studies' => 'sometimes|nullable|string|max:200',
+                'current_studies' => ['sometimes', 'nullable', Rule::in($studyLevels)],
+                'study_family' => 'sometimes|nullable|string|max:120',
+                'skill_ids' => 'sometimes|array|max:20',
+                'skill_ids.*' => ['integer', 'distinct', Rule::exists('skills', 'id')->where('active', true)],
                 'availability' => 'sometimes|nullable|string|max:2000',
                 'linkedin' => 'sometimes|nullable|url:http,https|max:500',
                 'github' => 'sometimes|nullable|url:http,https|max:500',
@@ -66,8 +84,27 @@ class ProfileController
         }
 
         $data = $request->validate($rules);
+        if ($request->user()->role === 'candidate') {
+            $profile = $this->profile($request);
+            $level = $profile->current_studies;
+            if (array_key_exists('current_studies', $data)) {
+                $level = $data['current_studies'];
+            }
+            $family = $profile->study_family;
+            if (array_key_exists('study_family', $data)) {
+                $family = $data['study_family'];
+            }
+            if ($family && !in_array($family, config('studies')[$level] ?? [], true)) {
+                throw ValidationException::withMessages(['study_family' => 'Select a family for your studies.']);
+            }
+        }
 
         DB::transaction(function () use ($request, $data) {
+            if (array_key_exists('skill_ids', $data)) {
+                $profile = $request->user()->candidateProfile()->lockForUpdate()->firstOrFail();
+                $profile->skills()->sync($data['skill_ids']);
+                unset($data['skill_ids']);
+            }
             $userData = [];
             foreach (['name', 'surname', 'second_surname'] as $field) {
                 if (array_key_exists($field, $data)) {

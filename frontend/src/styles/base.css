@@ -190,3 +190,15 @@ main img {
     padding: 10px 12px;
   }
 }
+
+.multiline {
+  white-space: pre-line;
+}
+
+dt {
+  font-weight: bold;
+}
+
+dd {
+  margin: 0 0 10px;
+}

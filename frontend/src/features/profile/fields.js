@@ -9,6 +9,8 @@ export function profileDraft(account) {
   for (const [key] of candidate ? candidateFields : companyFields) draft[key] = key === 'company_name' ? account.profile.name : account.profile[key] ?? '';
   draft[candidate ? 'summary' : 'description'] = account.profile[candidate ? 'summary' : 'description'] ?? '';
   if (candidate) {
+    draft.study_family = account.profile.study_family ?? '';
+    draft.skill_ids = (account.profile.skill_ids ?? []).map(Number);
     draft.mobility = account.profile.mobility ?? false;
     draft.preferred_modality = account.profile.preferred_modality ?? '';
     draft.preferred_schedule = account.profile.preferred_schedule ?? '';

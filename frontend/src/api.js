@@ -19,6 +19,19 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
+  options: () => request('/options'),
+  offers: query => request(`/offers?${new URLSearchParams(query)}`),
+  offer: id => request(`/offers/${id}`),
+  companyOffers: (page = 1) => request(`/company/offers?page=${page}`),
+  companyOffer: id => request(`/company/offers/${id}`),
+  saveOffer: (id, body) => request(id ? `/company/offers/${id}` : '/company/offers', { method: id ? 'PUT' : 'POST', body }),
+  deleteOffer: id => request(`/company/offers/${id}`, { method: 'DELETE' }),
+  apply: (id, message) => request(`/candidate/offers/${id}/applications`, { method: 'POST', body: { message } }),
+  applications: (page = 1) => request(`/candidate/applications?page=${page}`),
+  applicants: (id, page = 1) => request(`/company/offers/${id}/applications?page=${page}`),
+  applicationStatus: (id, status) => request(`/company/applications/${id}`, { method: 'PATCH', body: { status } }),
+  withdraw: id => request(`/candidate/applications/${id}/withdraw`, { method: 'POST' }),
+  notifications: () => request('/company/notifications'),
   register: (role, body) => request(`/${role}/register`, { method: 'POST', body }),
   login: (role, body) => request(`/${role}/login`, { method: 'POST', body }),
   resend: (role, email) => request(`/${role}/verification/resend`, { method: 'POST', body: { email } }),

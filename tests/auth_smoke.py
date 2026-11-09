@@ -90,7 +90,7 @@ def main(base, mailbox):
     assert 'surname' in invalid.request('POST', '/candidate/register', registration, 422)['errors']
     for role in ['candidate', 'company']:
         client = Client(base)
-        email = f'{role}-{uuid4().hex}@example.com'
+        email = f'{role}-{uuid4().hex}@cirvianum.cat' if role == 'candidate' else f'{role}-{uuid4().hex}@example.com'
         body = {'name': role.title(), 'surname': 'Test', 'email': email, 'password': password, 'password_confirmation': password}
         if role == 'company':
             del body['name'], body['surname']

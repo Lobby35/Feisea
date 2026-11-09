@@ -1,4 +1,6 @@
 import React from 'react';
+import CompanyOffers from '../features/offers/CompanyOffers';
+import CandidateApplications from '../features/applications/CandidateApplications';
 import { useAccount } from '../context/AccountContext';
 
 export default function DashboardPage() {
@@ -10,6 +12,7 @@ export default function DashboardPage() {
     <p>Welcome, {name}.</p>
     <p>{user.email}</p>
     {user.role === 'company' && <p>Company profile status: {profile.status}.</p>}
+    {user.role === 'company' ? <CompanyOffers /> : <CandidateApplications />}
     <p><a href={`/${user.role}/profile`}>Edit your profile</a></p>
   </>;
 }

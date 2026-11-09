@@ -73,6 +73,7 @@ CREATE TABLE candidate_profiles (
     mobility boolean,
     summary text,
     current_studies varchar(200),
+    study_family varchar(120),
     availability text,
     preferred_modality varchar(20),
     preferred_schedule varchar(20),
@@ -276,6 +277,26 @@ CREATE TABLE auth_tokens (
     expires_at timestamptz,
     used_at timestamptz,
     created_at timestamptz
+);
+
+CREATE TABLE jobs (
+    id bigint,
+    queue varchar(255),
+    payload text,
+    attempts smallint,
+    reserved_at bigint,
+    available_at bigint,
+    created_at bigint
+);
+
+CREATE TABLE failed_jobs (
+    id bigint,
+    uuid varchar(255),
+    connection text,
+    queue text,
+    payload text,
+    exception text,
+    failed_at timestamptz
 );
 
 -- 2. Constraints and defaults
@@ -916,5 +937,85 @@ $$;
 CREATE TRIGGER applications_status_history
 AFTER INSERT OR UPDATE OF status ON applications
 FOR EACH ROW EXECUTE FUNCTION record_application_status();
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'jobs'::regclass AND conname = 'jobs_pkey') THEN
+        ALTER TABLE jobs ALTER COLUMN id SET NOT NULL;
+        ALTER TABLE jobs ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
+        ALTER TABLE jobs ADD CONSTRAINT jobs_pkey PRIMARY KEY (id);
+        ALTER TABLE jobs ALTER COLUMN queue SET NOT NULL, ALTER COLUMN payload SET NOT NULL,
+            ALTER COLUMN attempts SET NOT NULL, ALTER COLUMN available_at SET NOT NULL,
+            ALTER COLUMN created_at SET NOT NULL;
+        CREATE INDEX jobs_queue_idx ON jobs (queue);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'failed_jobs'::regclass AND conname = 'failed_jobs_pkey') THEN
+        ALTER TABLE failed_jobs ALTER COLUMN id SET NOT NULL;
+        ALTER TABLE failed_jobs ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
+        ALTER TABLE failed_jobs ADD CONSTRAINT failed_jobs_pkey PRIMARY KEY (id);
+        ALTER TABLE failed_jobs ADD CONSTRAINT failed_jobs_uuid_key UNIQUE (uuid);
+        ALTER TABLE failed_jobs ALTER COLUMN uuid SET NOT NULL, ALTER COLUMN connection SET NOT NULL,
+            ALTER COLUMN queue SET NOT NULL, ALTER COLUMN payload SET NOT NULL,
+            ALTER COLUMN exception SET NOT NULL, ALTER COLUMN failed_at SET NOT NULL,
+            ALTER COLUMN failed_at SET DEFAULT CURRENT_TIMESTAMP;
+    END IF;
+END;
+$$;
+
+INSERT INTO skills (name, category) VALUES
+    ('Smart', 'Competency'),
+    ('Fast learner', 'Competency'),
+    ('Teamwork', 'Competency'),
+    ('Communication', 'Competency'),
+    ('Problem solving', 'Competency'),
+    ('Adaptability', 'Competency'),
+    ('Creativity', 'Competency'),
+    ('Organisation', 'Competency'),
+    ('Time management', 'Competency'),
+    ('Critical thinking', 'Competency'),
+    ('Initiative', 'Competency'),
+    ('Responsibility', 'Competency'),
+    ('Attention to detail', 'Competency'),
+    ('Leadership', 'Competency'),
+    ('Empathy', 'Competency'),
+    ('Customer service', 'Competency'),
+    ('Conflict resolution', 'Competency'),
+    ('Autonomy', 'Competency'),
+    ('Resilience', 'Competency'),
+    ('Digital literacy', 'Competency')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO qualifications (code, name) VALUES
+    ('GM', 'Grau Mig'),
+    ('GS', 'Grau Superior'),
+    ('BAT', 'Batxillerat')
+ON CONFLICT (code) DO NOTHING;
+
+INSERT INTO categories (name) VALUES
+    ('Administració i gestió'),
+    ('Agrària'),
+    ('Arts gràfiques'),
+    ('Comerç i màrqueting'),
+    ('Edificació i obra civil'),
+    ('Electricitat i electrònica'),
+    ('Energia i aigua'),
+    ('Fabricació mecànica'),
+    ('Fusta, moble i suro'),
+    ('Hoteleria i turisme'),
+    ('Imatge i so'),
+    ('Imatge personal i perruqueria'),
+    ('Indústries alimentàries'),
+    ('Informàtica i comunicacions'),
+    ('Instal·lació i manteniment'),
+    ('Química'),
+    ('Sanitat'),
+    ('Serveis socioculturals i a la comunitat'),
+    ('Tèxtil, confecció i pell'),
+    ('Transport i manteniment de vehicles'),
+    ('Activitats físiques i esportives'),
+    ('Seguretat i medi ambient')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO languages (code, name) VALUES ('ca', 'Català'), ('es', 'Castellà'), ('en', 'English'), ('fr', 'Français'), ('de', 'Deutsch') ON CONFLICT (code) DO NOTHING;
 
 COMMIT;

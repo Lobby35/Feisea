@@ -34,7 +34,7 @@ BEGIN
     INSERT INTO candidate_profiles (user_id) VALUES (candidate_user) RETURNING id INTO candidate;
     INSERT INTO companies (user_id, name) VALUES (company_user, 'Test Company') RETURNING id INTO company;
     INSERT INTO qualifications (code, name) VALUES ('DAW', 'Web development') RETURNING id INTO qualification;
-    INSERT INTO languages (code, name) VALUES ('en', 'English') RETURNING id INTO language;
+    INSERT INTO languages (code, name) VALUES ('en', 'English') ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name RETURNING id INTO language;
     INSERT INTO skills (name) VALUES ('JavaScript') RETURNING id INTO skill;
     INSERT INTO candidate_education (candidate_id, qualification_id, institution)
     VALUES (candidate, qualification, 'Test School');
