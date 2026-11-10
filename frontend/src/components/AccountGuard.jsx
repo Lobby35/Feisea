@@ -7,10 +7,10 @@ export default function AccountGuard({ role, setup, children }) {
   const { account, loading, error } = useAccount();
   let redirect = null;
   if (!loading && !error) {
-    if (!account) redirect = `/${role}/login`;
+    if (!account) redirect = role === 'admin' ? `/admin/login?next=${encodeURIComponent(window.location.pathname)}` : `/${role}/login`;
     else if (account.user.role !== role) redirect = `/${account.user.role}/dashboard`;
-    else if (!account.user.onboarding_completed_at && !setup) redirect = `/${role}/setup`;
-    else if (account.user.onboarding_completed_at && setup) redirect = `/${role}/dashboard`;
+    else if (role !== 'admin' && !account.user.onboarding_completed_at && !setup) redirect = `/${role}/setup`;
+    else if (role !== 'admin' && account.user.onboarding_completed_at && setup) redirect = `/${role}/dashboard`;
   }
   useEffect(() => { if (redirect) window.location.replace(redirect); }, [redirect]);
   if (loading || redirect) return <Notice>Loading…</Notice>;

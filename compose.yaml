@@ -32,6 +32,8 @@ services:
         COMPOSER_IMAGE: ${COMPOSER_IMAGE:?Set COMPOSER_IMAGE in .env}
     environment: &api_environment
       CANDIDATE_EMAIL_DOMAINS: ${CANDIDATE_EMAIL_DOMAINS:-cirvianum.cat}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       APP_NAME: ${APP_NAME:?Set APP_NAME in .env}
       APP_ENV: ${APP_ENV:?Set APP_ENV in .env}
       APP_DEBUG: ${APP_DEBUG:?Set APP_DEBUG in .env}

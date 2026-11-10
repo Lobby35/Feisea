@@ -32,8 +32,8 @@ class AuthenticateSession
         if ($role && $user->role !== $role) {
             abort(403, 'This page belongs to another account type.');
         }
-        if ($user->role === 'company' && $user->company()->value('status') === 'blocked') {
-            abort(403, 'Company account is blocked.');
+        if ($user->role === 'company' && $user->company()->value('status') !== 'approved') {
+            abort(403, 'Your company needs administrator approval.');
         }
 
         $csrfToken = hash_hmac('sha256', $token, config('app.key'));

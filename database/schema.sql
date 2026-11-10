@@ -106,6 +106,8 @@ CREATE TABLE companies (
     logo_path varchar(500),
     status varchar(20),
     verified_at timestamptz,
+    reviewed_by bigint,
+    reviewed_at timestamptz,
     created_at timestamptz,
     updated_at timestamptz
 );
@@ -249,6 +251,7 @@ CREATE TABLE favorite_offers (
 
 CREATE TABLE notifications (
     id bigint,
+    company_id bigint,
     user_id bigint,
     application_id bigint,
     job_offer_id bigint,
@@ -481,6 +484,7 @@ ALTER TABLE companies
     ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
 
 ALTER TABLE companies
+    ADD CONSTRAINT companies_reviewed_by_fkey FOREIGN KEY (reviewed_by) REFERENCES users (id) ON DELETE SET NULL,
     ADD CONSTRAINT companies_pkey PRIMARY KEY (id),
     ADD CONSTRAINT companies_user_id_key UNIQUE (user_id),
     ADD CONSTRAINT companies_cif_key UNIQUE (cif),
@@ -775,6 +779,7 @@ ALTER TABLE notifications
     ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP;
 
 ALTER TABLE notifications
+    ADD CONSTRAINT notifications_company_id_fkey FOREIGN KEY (company_id) REFERENCES companies (id) ON DELETE CASCADE,
     ADD CONSTRAINT notifications_pkey PRIMARY KEY (id),
     ADD CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     ADD CONSTRAINT notifications_application_id_fkey FOREIGN KEY (application_id) REFERENCES applications (id) ON DELETE SET NULL,
@@ -850,6 +855,7 @@ CREATE INDEX application_status_history_timeline_idx ON application_status_histo
 CREATE INDEX application_status_history_actor_idx ON application_status_history (changed_by);
 CREATE INDEX favorite_offers_offer_idx ON favorite_offers (job_offer_id);
 CREATE INDEX notifications_unread_idx ON notifications (user_id, created_at DESC) WHERE read_at IS NULL;
+CREATE INDEX notifications_company_idx ON notifications (company_id);
 CREATE INDEX notifications_user_idx ON notifications (user_id);
 CREATE INDEX notifications_application_idx ON notifications (application_id);
 CREATE INDEX notifications_offer_idx ON notifications (job_offer_id);

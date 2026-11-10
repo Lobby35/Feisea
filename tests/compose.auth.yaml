@@ -8,6 +8,8 @@ services:
       - "127.0.0.1:18001:80"
     environment:
       CANDIDATE_EMAIL_DOMAINS: cirvianum.cat,@alumnes.test
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: AdminTest!239account
       APP_ENV: testing
       APP_URL: http://127.0.0.1:18081
       APP_ALLOWED_ORIGINS: http://127.0.0.1:18081,http://127.0.0.1:18001
@@ -26,6 +28,8 @@ services:
     image: borsa-de-treball-api
     environment:
       CANDIDATE_EMAIL_DOMAINS: cirvianum.cat,@alumnes.test
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: AdminTest!239account
       APP_ENV: testing
       APP_URL: http://127.0.0.1:18081
       MAIL_HOST: mailpit

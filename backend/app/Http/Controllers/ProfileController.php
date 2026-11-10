@@ -15,6 +15,12 @@ class ProfileController
 {
     public function show(Request $request)
     {
+        if ($request->user()->role === 'admin') {
+            return response()->json([
+                'user' => $request->user(), 'profile' => [], 'photo_url' => null, 'cv_url' => null,
+                'csrf_token' => $request->attributes->get('csrf_token'),
+            ])->header('Cache-Control', 'no-store');
+        }
         $profile = $this->profile($request)->toArray();
         $photoUrl = null;
         $cvUrl = null;
@@ -30,7 +36,7 @@ class ProfileController
             $profile['skill_ids'] = $this->profile($request)->skills()->pluck('skills.id');
         }
 
-        unset($profile['photo_path'], $profile['logo_path'], $profile['cv_path']);
+        unset($profile['photo_path'], $profile['logo_path'], $profile['cv_path'], $profile['availability']);
 
         return response()->json([
             'user' => $request->user(),
@@ -65,7 +71,6 @@ class ProfileController
                 'study_family' => 'sometimes|nullable|string|max:120',
                 'skill_ids' => 'sometimes|array|max:20',
                 'skill_ids.*' => ['integer', 'distinct', Rule::exists('skills', 'id')->where('active', true)],
-                'availability' => 'sometimes|nullable|string|max:2000',
                 'linkedin' => 'sometimes|nullable|url:http,https|max:500',
                 'github' => 'sometimes|nullable|url:http,https|max:500',
                 'portfolio' => 'sometimes|nullable|url:http,https|max:500',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Jobs\SendCompanyRegistrationEmail;
 use App\Rules\AccountRules;
 use App\Services\Verification;
 use Illuminate\Http\Request;
@@ -57,13 +58,23 @@ class AuthController
             if ($role === 'candidate') {
                 $user->candidateProfile()->create([]);
             } else {
-                $user->company()->create([
+                $company = $user->company()->create([
                     'name' => $data['company_name'],
                     'contact_email' => $user->email,
                 ]);
             }
 
             $verification->send($user);
+            if ($role === 'company') {
+                $admins = User::where('role', 'admin')->where('status', 'active')->whereNotNull('email_verified_at')->get();
+                foreach ($admins as $admin) {
+                    DB::table('notifications')->insert([
+                        'user_id' => $admin->id, 'company_id' => $company->id, 'type' => 'company_registration',
+                        'data' => json_encode(['name' => $company->name, 'email' => $user->email]),
+                    ]);
+                    SendCompanyRegistrationEmail::dispatch($company->id, (int) $admin->id);
+                }
+            }
         });
 
         return response()->json([
@@ -77,7 +88,7 @@ class AuthController
             'token' => ['required', 'string', 'regex:/^[a-f0-9]{64}$/'],
         ]);
 
-        $role = DB::transaction(function () use ($data) {
+        $user = DB::transaction(function () use ($data) {
             $tokenHash = hash('sha256', $data['token']);
             $token = DB::table('auth_tokens')
                 ->where('purpose', 'email_verification')
@@ -99,11 +110,16 @@ class AuthController
             $user->save();
 
             DB::table('auth_tokens')->where('id', $token->id)->update(['used_at' => now()]);
-            return $user->role;
+            return $user;
         });
 
+        $role = $user->role;
+        $message = 'Email verified. You can now log in.';
+        if ($role === 'company' && $user->company()->value('status') !== 'approved') {
+            $message = 'Email verified. Your company also needs administrator approval before you can log in.';
+        }
         return response()->json([
-            'message' => 'Email verified. You can now log in.',
+            'message' => $message,
             'role' => $role,
         ]);
     }
@@ -156,8 +172,14 @@ class AuthController
             abort(403, 'Verify your email before logging in, or contact support if your account is blocked.');
         }
 
-        if ($role === 'company' && $user->company()->value('status') === 'blocked') {
-            abort(403, 'Company account is blocked.');
+        if ($role === 'company') {
+            $companyStatus = $user->company()->value('status');
+            if ($companyStatus === 'blocked') {
+                abort(403, 'Company account is blocked. Contact an administrator.');
+            }
+            if ($companyStatus !== 'approved') {
+                abort(403, 'Your company needs administrator approval before you can log in.');
+            }
         }
 
         $token = bin2hex(random_bytes(32));
@@ -189,6 +211,11 @@ class AuthController
             config('feisea.cookie'), $token, config('feisea.session_minutes'),
             '/', null, $request->isSecure(), true, false, 'lax'
         );
+    }
+
+    public function adminLogin(Request $request)
+    {
+        return $this->login($request, 'admin');
     }
 
     public function logout(Request $request)

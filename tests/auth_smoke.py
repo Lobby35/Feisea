@@ -78,6 +78,18 @@ def pdf():
     return result + f'trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n'.encode()
 
 
+def admin_client(base):
+    client = Client(base)
+    client.request('POST', '/admin/login', {'email': 'admin@example.com', 'password': 'AdminTest!239account'})
+    return client
+
+
+def approve_company(base, email):
+    admin = admin_client(base)
+    company = admin.request('GET', '/admin/companies?search=' + email)['data'][0]
+    admin.request('PATCH', f"/admin/companies/{company['id']}", {'status': 'approved'})
+
+
 def main(base, mailbox):
     password = 'AccountTest!239'
     clients = {}
@@ -106,6 +118,8 @@ def main(base, mailbox):
             client.request('POST', '/verification/verify', {'token': previous}, 422)
         assert client.request('POST', '/verification/verify', {'token': token})['role'] == role
         client.request('POST', '/verification/verify', {'token': token}, 422)
+        if role == 'company':
+            approve_company(base, email)
         client.request('POST', f'/{role}/login', {'email': email, 'password': password})
         data = client.request('GET', f'/{role}/me')
         assert not {'photo_path', 'logo_path', 'cv_path'} & data['profile'].keys()
@@ -116,7 +130,8 @@ def main(base, mailbox):
             assert data['user']['name'] == body['company_name'] == data['profile']['name']
         assert data['user']['onboarding_completed_at'] is None
         assert client.request('GET', '/me')['user']['id'] == data['user']['id']
-        client.request('POST', f'/{role}/setup/complete', expected=422)
+        if role == 'candidate':
+            client.request('POST', f'/{role}/setup/complete', expected=422)
         assert any(cookie.name == 'feisea_test_session' and (cookie.has_nonstandard_attr('HttpOnly') or cookie.has_nonstandard_attr('httponly')) for cookie in client.cookies)
         other = 'company' if role == 'candidate' else 'candidate'
         client.request('GET', f'/{other}/me', expected=403)
@@ -161,7 +176,6 @@ def main(base, mailbox):
     anonymous.request('POST', '/candidate/login', {'email': email, 'password': password}, 401)
     anonymous.request('POST', '/admin/register', {}, 404)
     for role, (client, account_email) in clients.items():
-        client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
         if role == 'candidate':
             client.request('POST', '/candidate/setup/complete', expected=422)
             client.upload('/candidate/cv', pdf(), 'cv.pdf', 'application/pdf')

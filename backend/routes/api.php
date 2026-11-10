@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdminCompanyController;
+use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\AdminOfferController;
 use App\Http\Controllers\OptionsController;
 use App\Http\Controllers\JobOfferController;
 use App\Http\Controllers\ApplicationController;
@@ -28,6 +31,7 @@ Route::get('/offers/{offer}', [JobOfferController::class, 'show']);
 
 Route::pattern('user', '[1-9][0-9]{0,18}');
 Route::pattern('role', 'candidate|company');
+Route::post('/admin/login', [AuthController::class, 'adminLogin'])->middleware('throttle:8,1,admin_login');
 Route::post('/{role}/register', [AuthController::class, 'register'])->middleware('throttle:5,1,register');
 Route::post('/{role}/login', [AuthController::class, 'login'])->middleware('throttle:8,1,login');
 Route::post('/{role}/verification/resend', [AuthController::class, 'resend'])->middleware('throttle:3,1,resend');
@@ -69,4 +73,17 @@ Route::prefix('company')->middleware('session.auth:company')->group(function () 
     Route::delete('/photo', [ProfileController::class, 'deletePhoto']);
 });
 
-Route::apiResource('users', UserController::class)->middleware('session.auth:admin');
+Route::pattern('company', '[1-9][0-9]{0,18}');
+Route::prefix('admin')->middleware('session.auth:admin')->group(function () {
+    Route::get('/summary', [AdminController::class, 'summary']);
+    Route::get('/companies', [AdminCompanyController::class, 'index']);
+    Route::get('/companies/{company}', [AdminCompanyController::class, 'show']);
+    Route::patch('/companies/{company}', [AdminCompanyController::class, 'update']);
+    Route::get('/users', [AdminUserController::class, 'index']);
+    Route::patch('/users/{user}', [AdminUserController::class, 'update']);
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy']);
+    Route::get('/offers', [AdminOfferController::class, 'index']);
+    Route::post('/offers/{offer}/close', [AdminOfferController::class, 'close']);
+    Route::delete('/offers/{offer}', [AdminOfferController::class, 'destroy']);
+});
+Route::get('/users', [AdminUserController::class, 'index'])->middleware('session.auth:admin');

@@ -32,16 +32,10 @@ class ProfileSetupController
 
             $errors = [];
             if ($user->role === 'candidate') {
-                if (!$profile->photo_path || !Storage::exists($profile->photo_path)) {
-                    $errors['photo_path'] = 'Upload a profile photo.';
-                }
                 if (!$profile->cv_path || !Storage::exists($profile->cv_path)) {
                     $errors['cv_path'] = 'Upload your CV.';
                 }
             } else {
-                if (!$profile->logo_path || !Storage::exists($profile->logo_path)) {
-                    $errors['logo_path'] = 'Upload a company logo.';
-                }
                 if (!trim($profile->name)) {
                     $errors['company_name'] = 'Enter the company name.';
                 }

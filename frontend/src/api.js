@@ -19,6 +19,16 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
+  adminSummary: () => request('/admin/summary'),
+  adminCompanies: query => request(`/admin/companies?${new URLSearchParams(query)}`),
+  adminCompany: id => request(`/admin/companies/${id}`),
+  reviewCompany: (id, status) => request(`/admin/companies/${id}`, { method: 'PATCH', body: { status } }),
+  adminUsers: query => request(`/admin/users?${new URLSearchParams(query)}`),
+  userStatus: (id, status) => request(`/admin/users/${id}`, { method: 'PATCH', body: { status } }),
+  deleteUser: id => request(`/admin/users/${id}`, { method: 'DELETE' }),
+  adminOffers: query => request(`/admin/offers?${new URLSearchParams(query)}`),
+  adminCloseOffer: id => request(`/admin/offers/${id}/close`, { method: 'POST' }),
+  adminDeleteOffer: id => request(`/admin/offers/${id}`, { method: 'DELETE' }),
   options: () => request('/options'),
   offers: query => request(`/offers?${new URLSearchParams(query)}`),
   offer: id => request(`/offers/${id}`),

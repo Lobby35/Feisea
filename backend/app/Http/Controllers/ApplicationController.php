@@ -26,7 +26,7 @@ class ApplicationController
                 $company = $offer->company;
                 $companyUser = $company->user;
                 if ($offer->status !== 'published' || !$offer->published_at || $offer->published_at->isFuture()
-                    || ($offer->expires_at && $offer->expires_at->isPast()) || $company->status === 'blocked'
+                    || ($offer->expires_at && $offer->expires_at->isPast()) || $company->status !== 'approved'
                     || !$companyUser || $companyUser->status !== 'active' || !$companyUser->email_verified_at) {
                     abort(409, 'This offer is no longer accepting applications.');
                 }

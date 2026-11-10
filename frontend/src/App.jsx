@@ -11,6 +11,12 @@ import OffersPage from './pages/offers/OffersPage';
 import OfferPage from './pages/offers/OfferPage';
 import OfferEditPage from './pages/offers/OfferEditPage';
 import ApplicantsPage from './pages/offers/ApplicantsPage';
+import AdminLoginPage from './pages/admin/AdminLoginPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminCompaniesPage from './pages/admin/AdminCompaniesPage';
+import AdminCompanyPage from './pages/admin/AdminCompanyPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminOffersPage from './pages/admin/AdminOffersPage';
 import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
@@ -18,8 +24,15 @@ export default function App() {
   const match = path.match(/^\/(candidate|company)\/(register|login|verification|dashboard|profile|setup)$/);
   const offerMatch = path.match(/^\/offers\/([1-9][0-9]*)$/);
   const companyOfferMatch = path.match(/^\/company\/offers\/([1-9][0-9]*)\/(edit|applications)$/);
+  const adminCompanyMatch = path.match(/^\/admin\/companies\/([1-9][0-9]*)$/);
   let page;
   if (path === '/') page = <HomePage />;
+  else if (path === '/admin/login') page = <AdminLoginPage />;
+  else if (path === '/admin' || path === '/admin/dashboard') page = <AccountGuard role="admin"><AdminDashboardPage /></AccountGuard>;
+  else if (path === '/admin/companies') page = <AccountGuard role="admin"><AdminCompaniesPage /></AccountGuard>;
+  else if (adminCompanyMatch) page = <AccountGuard role="admin"><AdminCompanyPage id={adminCompanyMatch[1]} /></AccountGuard>;
+  else if (path === '/admin/users') page = <AccountGuard role="admin"><AdminUsersPage /></AccountGuard>;
+  else if (path === '/admin/offers') page = <AccountGuard role="admin"><AdminOffersPage /></AccountGuard>;
   else if (path === '/offers') page = <OffersPage />;
   else if (offerMatch) page = <OfferPage id={offerMatch[1]} />;
   else if (path === '/company/offers/new') page = <AccountGuard role="company"><OfferEditPage /></AccountGuard>;

@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from urllib.request import urlopen
 from uuid import uuid4
 
-from auth_smoke import Client, pdf, png, verification
+from auth_smoke import Client, pdf, png, verification, approve_company
 
 
 def create_account(base, mailbox, role, domain):
@@ -23,6 +23,8 @@ def create_account(base, mailbox, role, domain):
     client.request('POST', f'/{role}/register', body, 201)
     email = email.lower()
     client.request('POST', '/verification/verify', {'token': verification(mailbox, email)})
+    if role == 'company':
+        approve_company(base, email)
     client.request('POST', f'/{role}/login', {'email': email, 'password': password})
     client.upload(f'/{role}/photo', png(), 'photo.png', 'image/png')
     if role == 'candidate':

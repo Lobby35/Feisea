@@ -124,7 +124,7 @@ class JobOfferController
             ->where(function ($query) {
                 $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })->whereHas('company', function ($query) {
-                $query->where('status', '<>', 'blocked')->whereHas('user', function ($user) {
+                $query->where('status', 'approved')->whereHas('user', function ($user) {
                     $user->where('status', 'active')->whereNotNull('email_verified_at');
                 });
             });

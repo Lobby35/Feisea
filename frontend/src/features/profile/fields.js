@@ -1,4 +1,4 @@
-export const candidateFields = [['phone', 'Phone'], ['city', 'City'], ['current_studies', 'Current studies'], ['availability', 'Availability'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['portfolio', 'Portfolio']];
+export const candidateFields = [['phone', 'Phone'], ['city', 'City'], ['current_studies', 'Current studies'], ['linkedin', 'LinkedIn'], ['github', 'GitHub'], ['portfolio', 'Portfolio']];
 export const companyFields = [['company_name', 'Company name'], ['phone', 'Phone'], ['city', 'City'], ['address', 'Address'], ['website', 'Website'], ['contact_email', 'Contact email']];
 export const fieldType = name => name === 'contact_email' ? 'email' : ['website', 'linkedin', 'github', 'portfolio'].includes(name) ? 'url' : 'text';
 

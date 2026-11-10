@@ -21,13 +21,13 @@ export default function Header() {
       <a href="/offers">Offers</a>
       {account ? <>
         <a href={`/${role}/dashboard`}>Dashboard</a>
-        <a href={profilePath} aria-label="Open profile">
+        {role !== 'admin' && <a href={profilePath} aria-label="Open profile">
           {account.photo_url ? <img src={`${account.photo_url}?v=${account.photoVersion}`} width="32" height="32" alt="Profile photo" /> : 'Profile'}
-        </a>
+        </a>}
         <button type="button" aria-label="Log out" title="Log out" disabled={busy} onClick={logout}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M9 3H3v18h6M10 12h11m-5-5 5 5-5 5" /></svg>
         </button>
-      </> : <><a href="/candidate/login">Candidates</a><a href="/company/login">Companies</a></>}
+      </> : <><a href="/candidate/login">Candidates</a><a href="/company/login">Companies</a><a href="/admin/login">Admin</a></>}
     </nav>
     <Notice>{message}</Notice>
   </header>;

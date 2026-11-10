@@ -22,7 +22,7 @@ class SendApplicationEmail implements ShouldQueue
             return;
         }
         $companyUser = $application->offer->company->user;
-        if (!$companyUser || $companyUser->status !== 'active' || !$companyUser->email_verified_at) {
+        if ($application->offer->company->status !== 'approved' || !$companyUser || $companyUser->status !== 'active' || !$companyUser->email_verified_at) {
             return;
         }
         $candidate = $application->candidate->user;
