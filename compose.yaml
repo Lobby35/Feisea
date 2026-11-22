@@ -25,7 +25,7 @@ services:
     restart: unless-stopped
 
   api:
-    build:
+    build: &api_build
       context: ./backend
       args:
         PHP_IMAGE: ${PHP_IMAGE:?Set PHP_IMAGE in .env}
@@ -83,7 +83,7 @@ services:
 
   mail-worker:
     user: www-data
-    image: ${COMPOSE_PROJECT_NAME}-api
+    build: *api_build
     environment: *api_environment
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=5", "--backoff=60", "--timeout=30"]
     volumes:
