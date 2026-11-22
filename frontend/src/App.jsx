@@ -2,6 +2,8 @@ import React from 'react';
 import { AccountProvider } from './context/AccountContext';
 import AccountGuard from './components/AccountGuard';
 import Header from './components/Header';
+import Footer from './components/Footer';
+import { legalPages } from './pages/LegalPages';
 import HomePage from './pages/HomePage';
 import AccountPage from './pages/auth/AccountPage';
 import VerifyPage from './pages/auth/VerifyPage';
@@ -25,8 +27,10 @@ export default function App() {
   const offerMatch = path.match(/^\/offers\/([1-9][0-9]*)$/);
   const companyOfferMatch = path.match(/^\/company\/offers\/([1-9][0-9]*)\/(edit|applications)$/);
   const adminCompanyMatch = path.match(/^\/admin\/companies\/([1-9][0-9]*)$/);
+  const LegalPage = legalPages.find(route => route.path === path)?.Page;
   let page;
-  if (path === '/') page = <HomePage />;
+  if (LegalPage) page = <LegalPage />;
+  else if (path === '/') page = <HomePage />;
   else if (path === '/admin/login') page = <AdminLoginPage />;
   else if (path === '/admin' || path === '/admin/dashboard') page = <AccountGuard role="admin"><AdminDashboardPage /></AccountGuard>;
   else if (path === '/admin/companies') page = <AccountGuard role="admin"><AdminCompaniesPage /></AccountGuard>;
@@ -44,5 +48,5 @@ export default function App() {
     else if (['register', 'login'].includes(action)) page = <AccountPage role={role} register={action === 'register'} />;
     else page = <AccountGuard role={role} setup={action === 'setup'}>{action === 'dashboard' ? <DashboardPage /> : <ProfilePage setup={action === 'setup'} />}</AccountGuard>;
   } else page = <><h1>Page not found</h1><a href="/">Return home</a></>;
-  return <AccountProvider><Header /><main>{page}</main></AccountProvider>;
+  return <AccountProvider><Header /><main>{page}</main><Footer /></AccountProvider>;
 }

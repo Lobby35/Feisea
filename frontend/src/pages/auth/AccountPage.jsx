@@ -4,6 +4,7 @@ import { api } from '../../api';
 import Field from '../../components/Field';
 import NameFields from '../../components/NameFields';
 import Notice from '../../components/Notice';
+import { RegistrationNotice } from '../../components/LegalNotices';
 import PasswordChecklist from '../../features/auth/PasswordChecklist';
 import { passwordError } from '../../features/auth/passwordRequirements';
 
@@ -41,6 +42,7 @@ export default function AccountPage({ role, register }) {
         <Field label="Password" name="password" type="password" value={fields.password} onChange={change('password')} required aria-describedby={register ? 'password-requirements' : undefined} minLength={register ? 12 : undefined} maxLength={register ? 72 : 1024} onInput={event => { if (register) event.target.setCustomValidity(passwordError(event.target.value)); }} autoComplete={register ? 'new-password' : 'current-password'} />
         {register && <Field label="Confirm password" name="password_confirmation" type="password" value={fields.password_confirmation} onChange={change('password_confirmation')} required maxLength={72} autoComplete="new-password" />}
         {register && <PasswordChecklist password={fields.password} />}
+        {register && <RegistrationNotice role={role} />}
         <button type="submit">{busy ? 'Please wait…' : register ? 'Create account' : 'Log in'}</button>
       </fieldset>
     </form>

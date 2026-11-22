@@ -23,7 +23,10 @@ export default function CandidateApplications() {
       <p>Applied: {new Date(application.created_at).toLocaleDateString()}</p>
       {application.message && <p>{application.message}</p>}
       <details><summary>Status history</summary><ul>{application.history.map(item => <li key={item.id}>{item.new_status} · {new Date(item.changed_at).toLocaleString()}</li>)}</ul></details>
-      {['pending', 'reviewed', 'interview'].includes(application.status) && <p><button disabled={busy} onClick={() => withdraw(application.id)}>Withdraw</button></p>}
+      {['pending', 'reviewed', 'interview'].includes(application.status) && <>
+        <p className="legal-notice" lang="ca">En retirar la candidatura, Feisea en canviarà l’estat. L’empresa encara podrà consultar la candidatura i descarregar el CV des de Feisea. Si l’empresa ja ha descarregat el CV, la retirada no elimina aquesta còpia. Per demanar la supressió de les dades, consulta el <a href="/privacitat#exercici-de-drets">canal d’exercici de drets</a>.</p>
+        <p><button disabled={busy} onClick={() => withdraw(application.id)}>Withdraw</button></p>
+      </>}
     </section>)}
     <Pagination data={data} onPage={setPage} />
   </section>;

@@ -16,6 +16,7 @@ export default function ProfilePage({ setup }) {
     <Notice>{editor.message}</Notice>
     <ProfileForm options={options} candidate={candidate} draft={editor.draft} change={editor.change} busy={editor.busy} onSubmit={editor.save} />
     <ProfileMedia account={editor.account} busy={editor.busy} suggestions={editor.suggestions} onUpload={editor.upload} onRemove={editor.remove} onExtract={editor.extract} onApply={editor.apply} />
+    <p lang="ca"><a href="/privacitat#exercici-de-drets">Informació de privacitat i exercici de drets</a></p>
     {setup && <p><button type="submit" form="profile-details" value="complete" disabled={editor.busy}>Finish setup</button></p>}
     {!setup && <p><a href={`/${editor.account.user.role}/dashboard`}>Back to dashboard</a></p>}
   </>;

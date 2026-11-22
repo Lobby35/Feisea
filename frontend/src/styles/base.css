@@ -202,3 +202,41 @@ dt {
 dd {
   margin: 0 0 10px;
 }
+
+.site-footer {
+  width: calc(100% - 2rem);
+  max-width: 960px;
+  margin: 0 auto 24px;
+  padding: 16px 24px;
+  border: 1px solid #c5c5c5;
+  background: white;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 24px;
+}
+
+.site-footer p {
+  margin: 0;
+  font-weight: bold;
+}
+
+.site-footer nav {
+  padding: 0;
+  gap: 8px 16px;
+}
+
+.site-footer nav a {
+  color: #285b83;
+  text-decoration: underline;
+  margin: 0;
+  font-size: inherit;
+  font-weight: normal;
+}
+
+.legal-notice {
+  padding: 10px 12px;
+  border-left: 3px solid #365973;
+  background: #f2f6f9;
+}

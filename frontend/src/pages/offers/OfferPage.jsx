@@ -34,7 +34,10 @@ export default function OfferPage({ id }) {
       <dt>Competencies</dt><dd>{offer.skills.map(skill => skill.name).join(', ') || '—'}</dd>
       <dt>Languages</dt><dd>{offer.languages.map(language => `${language.name} ${language.pivot.required_level}`).join(', ') || '—'}</dd>
     </dl>
-    {account?.user.role === 'candidate' && !applied && <form onSubmit={apply}><p><label>Message<textarea name="message" value={note} maxLength={5000} onChange={event => setNote(event.target.value)} rows={4} /></label></p><button disabled={busy}>Apply</button></form>}
+    {account?.user.role === 'candidate' && !applied && <form onSubmit={apply}><p><label>Message<textarea name="message" value={note} maxLength={5000} onChange={event => setNote(event.target.value)} rows={4} /></label></p>
+      <p className="legal-notice" lang="ca">En enviar la candidatura, <strong>{offer.company.name}</strong> podrà consultar el teu nom i cognoms, correu electrònic, telèfon, municipi, estudis, família professional, competències, resum i enllaços del perfil, el teu missatge i una còpia del CV actual. Si substitueixes el CV del perfil més endavant, la còpia d’aquesta candidatura es mantindrà. Consulta el <a href="/privacitat">termini de conservació i els teus drets</a>.</p>
+      <button disabled={busy}>Apply</button>
+    </form>}
     {applied && <p><a href="/candidate/dashboard">View your applications</a></p>}
     {!account && <p><a href="/candidate/login">Log in to apply</a></p>}
   </>}<p><a href="/offers">All offers</a></p></>;

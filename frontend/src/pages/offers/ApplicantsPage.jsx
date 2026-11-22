@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../api';
 import Notice from '../../components/Notice';
+import { CompanyDataNotice } from '../../components/LegalNotices';
 import Pagination from '../../components/Pagination';
 import { statuses } from '../../features/offers/fields';
 
@@ -17,6 +18,7 @@ export default function ApplicantsPage({ id }) {
     finally { setBusy(false); }
   }
   return <><h1>Applicants{data ? `: ${data.offer.title}` : ''}</h1><Notice>{message}</Notice>
+    {data && <CompanyDataNotice title={data.offer.title} />}
     {data?.applications.data.length === 0 && <p>No applications yet.</p>}
     {data?.applications.data.map(application => {
       const { candidate } = application;
@@ -29,7 +31,7 @@ export default function ApplicantsPage({ id }) {
         {candidate.summary && <p className="multiline">{candidate.summary}</p>}
         {['linkedin', 'github', 'portfolio'].map(name => candidate[name] && <p key={name}><a href={candidate[name]} target="_blank" rel="noreferrer">{name}</a></p>)}
         {application.message && <p className="multiline">{application.message}</p>}
-        <p><a href={`/api/company/applications/${application.id}/cv`}>Download CV</a></p>
+        <p><a href={`/api/company/applications/${application.id}/cv`}>Download CV</a> <span lang="ca">· Descarrega’l només per gestionar aquesta selecció.</span></p>
         <p><label>Status{' '}<select aria-label={`Status for ${user.name}`} value={application.status} disabled={busy || application.status === 'withdrawn'} onChange={event => update(application.id, event.target.value)}>{[...statuses, 'withdrawn'].map(status => <option key={status} value={status} disabled={status === 'withdrawn'}>{status}</option>)}</select></label></p>
         <details><summary>Status history</summary><ul>{application.history.map(item => <li key={item.id}>{item.new_status} · {new Date(item.changed_at).toLocaleString()}</li>)}</ul></details>
       </section>;
